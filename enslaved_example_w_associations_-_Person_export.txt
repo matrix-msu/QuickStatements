@@ -1,0 +1,66 @@
+CREATE-1
+LAST	Len	"IsambÃ¡kÅ�n"
+LAST	Aen	"<value>George File</value>"
+LAST	P17	Q48
+LAST	P37	"<value>Joola Ejamat</value>"
+CREATE-2
+LAST	Len	"Kayawon"
+LAST	Aen	"<value>Abraham Belford</value><value>Bahema</value>"
+LAST	P17	Q48
+LAST	P37	"<value>Joola Fogny</value>"
+CREATE-3
+LAST	Len	"BÃ¡dá¹£Ä�bu"
+LAST	Aen	"<value>Manuel Maxfield</value>"
+LAST	P17	Q48
+LAST	P37	"<value>Manjaku sp</value>"
+CREATE-4
+LAST	Len	"Udá¹£Å«man"
+LAST	Aen	"<value>Robert Nicol</value><value>Osman</value>"
+LAST	P17	Q48
+LAST	P37	"<value>Manjaku Bok</value>"
+CREATE-5
+LAST	Len	"BÃºkar"
+LAST	Aen	"<value>John Campbell</value>"
+LAST	P17	Q48
+LAST	P37	"<value>Biafada</value>"
+CREATE-6
+LAST	Len	"WÄ�li"
+LAST	Aen	"<value>John Wali</value>"
+LAST	P17	Q48
+LAST	P37	"<value>Jaad</value>"
+CREATE-7
+LAST	Len	"J.B."
+LAST	P17	Q48
+Q576	Len	"Manuel Vidau"
+Q576	P17	Q48
+Q576	P48	Q579
+Q579	Len	"Maria Luisa Picard"
+Q579	P17	Q47
+Q579	P48	Q576
+CREATE-8
+LAST	Len	"William Allen"
+LAST	P17	Q48
+LAST	P37	"<value>Yoruba</value>"
+CREATE-9
+LAST	Len	"AndrÃ© do Amaral"
+LAST	P17	Q48
+CREATE-10
+LAST	Len	"Bosseu"
+LAST	P17	Q48
+LAST	P48	CREATED-11
+LAST	P37	"<value>Yoruba</value>"
+CREATE-11
+LAST	Len	"Dada"
+LAST	P17	Q47
+LAST	P48	CREATED-10
+LAST	P37	"<value>Yoruba</value>"
+CREATE-12
+LAST	Len	"Unknown"
+LAST	P17	Q48
+LAST	P17	Q47
+CREATE-13
+LAST	Len	"Unknown"
+LAST	P17	Q48
+CREATE-14
+LAST	Len	"Unknown"
+LAST	P17	Q48
