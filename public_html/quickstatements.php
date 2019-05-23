@@ -34,9 +34,9 @@ user = YourBotName
 pass = YourBotPassword
 */
 
-require_once ( __DIR__ . '/../../magnustools/public_html/php/common.php' ) ;
-require_once ( __DIR__ . '/../../magnustools/public_html/php/wikidata.php' ) ;
-require_once ( __DIR__ . '/../../magnustools/public_html/php/oauth.php' ) ;
+require_once ( __DIR__ . '/../magnustools/public_html/php/common.php' ) ;
+require_once ( __DIR__ . '/../magnustools/public_html/php/wikidata.php' ) ;
+require_once ( __DIR__ . '/../magnustools/public_html/php/oauth.php' ) ;
 require_once ( __DIR__ . '/../vendor/autoload.php' ) ;
 
 // QuickStatements class

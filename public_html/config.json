@@ -1,14 +1,14 @@
 {
 	"site" : "wikidata" ,
-	"bot_config_file" : "/matrix/home/josh.christ/public_html/quickstatements-2.0-chyron-31-v2/public_html/bot.ini" ,
-	"logfile" : "/matrix/home/josh.christ/public_html/quickstatements-2.0-chyron-31-v2/public_html/tool.log" ,
+	"bot_config_file" : "/matrix/dev/public_html/enslaved-quickstatements/public_html/bot.ini" ,
+	"logfile" : "/matrix/dev/public_html/enslaved-quickstatements/public_html/tool.log" ,
 	"sites" : {
 		"wikidata" : {
-			"oauth" : { "language":"wikidata" , "project":"wikidata" , "ini_file":"/matrix/home/josh.christ/public_html/quickstatements-2.0-chyron-31-v2/public_html/oauth.ini" , "mwOAuthUrl":"https://chyron-31.matrix.msu.edu/w/index.php?title=Special:OAuth" , "mwOAuthIW":"mw" } ,
+			"oauth" : { "language":"wikidata" , "project":"wikidata" , "ini_file":"/matrix/dev/public_html/enslaved-quickstatements/public_html/oauth.ini" , "mwOAuthUrl":"https://chyron-31.matrix.msu.edu/w/index.php?title=Special:OAuth" , "mwOAuthIW":"mw" } ,
 			"server" : "chyron-31.matrix.msu.edu" ,
 			"api" : "https://chyron-31.matrix.msu.edu/w/api.php" ,
 			"pageBase" : "https://chyron-31.matrix.msu.edu/wiki/Item:" ,
-			"toolBase" : "http://dev2.matrix.msu.edu/~josh.christ/quickstatements-2.0-chyron-31-v2/public_html" ,
+			"toolBase" : "http://dev2.matrix.msu.edu/enslaved-quickstatements/public_html" ,
 			"types" : {
 				"P" : { "type":"property" , "ns":120 , "ns_prefix":"Property:" } ,
 				"Q" : { "type":"item" , "ns":0 , "ns_prefix":"" },
