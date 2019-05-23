@@ -408,6 +408,7 @@ let BatchPage = Vue.extend ( {
 						console.log('created mappings', createdMappings);
 						var tmpUnproccessableClaims = [];
 						$.each ( unprocessableClaims , function ( id , claim ) {
+							console.log('claim check', claim['created-id'], d.command['create-id'] );
 							if( claim['created-id'] === d.command['create-id'] ){
 								console.log( 'process previously unprocessable claim here', claim, d.command['create-id'], d.last_item);
 								postProcessClaims += claim.item + "|" + claim.property + "|" + d.last_item + "||";

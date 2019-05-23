@@ -1089,6 +1089,10 @@ exit ( 1 ) ; // Force bot restart
 				$action = 'remove' ;
 				$cols[0] = $m[1] ;
 			}
+			if( isset($cols[1]) && substr( $cols[1], 0, 2 ) === 'DP' ){		
+				$cols[1] = ltrim($cols[1], 'D'); 		
+				$cols[2] = "CREATED-".$cols[2];
+			}
 			$first = strtoupper(trim($cols[0])) ;
 			if ( count ( $cols ) >= 3 and ( $this->isValidItemIdentifier($first) or $first == 'LAST' ) and $this->isValidItemIdentifier($cols[1]) ) {
 				$prop = strtoupper(trim($cols[1])) ;
@@ -1216,7 +1220,11 @@ exit ( 1 ) ; // Force bot restart
                     $instruction = substr( $instruction, 1 );
                 }
 
-                if ( $instruction[0] === 'P' ) {
+                if ( $instruction[0] === 'P' || substr( $instruction, 0, 2 ) === 'DP' ) {
+					if( ssubstr( $instruction, 0, 2 ) === 'DP' ){
+						$value = "CREATE=".$value;
+						$instruction = ltrim($instruction, 'D'); 
+					}
                     $command += [
                         'what' => 'statement',
                         'property' => $instruction
