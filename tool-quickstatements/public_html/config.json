@@ -1,0 +1,19 @@
+{
+	"site" : "wikidata" ,
+	"bot_config_file" : "/matrix/home/josh.christ/public_html/tool-quickstatements/public_html/bot.ini" ,
+	"logfile" : "/matrix/home/josh.christ/public_html/tool-quickstatements/public_html/tool.log" ,
+	"sites" : {
+		"wikidata" : {
+			"oauth" : { "language":"wikidata" , "project":"wikidata" , "ini_file":"/matrix/home/josh.christ/public_html/tool-quickstatements/public_html/oauth.ini" , "mwOAuthUrl":"https://sandro-16.matrix.msu.edu/w/index.php?title=Special:OAuth" , "mwOAuthIW":"mw" } ,
+			"server" : "sandro-16.matrix.msu.edu" ,
+			"api" : "https://sandro-16.matrix.msu.edu/w/api.php" ,
+			"pageBase" : "https://sandro-16.matrix.msu.edu/wiki/Item:" ,
+			"toolBase" : "http://dev2.matrix.msu.edu/~josh.christ/tool-quickstatements/public_html" ,
+			"types" : {
+				"P" : { "type":"property" , "ns":120 , "ns_prefix":"Property:" } ,
+				"Q" : { "type":"item" , "ns":0 , "ns_prefix":"" },
+				"L" : { "type":"lexeme", "ns": 146, "ns_prefix":"Lexeme:" }
+			}
+		}
+	}
+}
