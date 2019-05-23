@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="resources/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="resources/css/common.css">
+
+<style>
+
+</style>
+
+
+<script type="text/javascript" src="resources/js/jquery/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="resources/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="resources/js/common.js"></script>
+
+
+<script type="text/javascript">
+String.prototype.ucFirst = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
+var min_autogroup = 4 ;
+var default_icon = 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Question_symbol_blue-white.svg/150px-Question_symbol_blue-white.svg.png' ;
+
+var keywords = {} ;
+var tools = {} ;
+
+var meta = {
+	wikipedia:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/150px-Wikipedia-logo-v2.svg.png'},
+	wikidata:{keywords:['wikidata','wdq'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Wikidata-logo.svg/150px-Wikidata-logo.svg.png'},
+	commons:{keywords:['commons','wikicommons'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Commons-logo.svg/150px-Commons-logo.svg.png'},
+	wikisource:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Wikisource-logo.svg/150px-Wikisource-logo.svg.png'},
+	wikinews:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Wikinews-logo.svg/150px-Wikinews-logo.svg.png'},
+	categories:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Symbol_category.svg/150px-Symbol_category.svg.png'},
+	templates:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Blank_template.svg/150px-Blank_template.svg.png'},
+	files:{keywords:['audio','photos','upload','files','reuse'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Upload.svg/150px-Upload.svg.png'},
+	glam:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/GLAM_logo%2C_square%2C_transparent.png/150px-GLAM_logo%2C_square%2C_transparent.png'},
+	wlm:{name:'Wiki Loves Monuments',keywords:['wlm','wiki loves monuments','wle','monuments'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Wiki_Loves_Monuments_Logo_notext.svg/150px-Wiki_Loves_Monuments_Logo_notext.svg.png'},
+	missing:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Oxygen480-status-image-missing.svg/150px-Oxygen480-status-image-missing.svg.png'},
+	statistics:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Gnome-power-statistics.svg/150px-Gnome-power-statistics.svg.png'},
+	maps:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Four_color_world_map.svg/150px-Four_color_world_map.svg.png'},
+	language:{keywords:['interlanguage','i18n','multilingual','language','languages','translation'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Tango_Globe_of_Letters.svg/150px-Tango_Globe_of_Letters.svg.png'},
+	'graph/tree':{keywords:['graph','tree'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Simple_cycle_graph.svg/150px-Simple_cycle_graph.svg.png'},
+	search:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Emblem-search.svg/150px-Emblem-search.svg.png'},
+	irc:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Wikimedia_Community_Logo-IRC.png/150px-Wikimedia_Community_Logo-IRC.png'},
+	vandalism:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/BewareOfTrolls.svg/150px-BewareOfTrolls.svg.png'},
+	random:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Dado_-_dice.svg/150px-Dado_-_dice.svg.png'},
+	list:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/AZ-List.svg/150px-AZ-List.svg.png'},
+	views:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/View.svg/150px-View.svg.png'},
+	edits:{keywords:['redirects','edit','edit count','editing','edits','wikitext'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Document_text_edit.svg/150px-Document_text_edit.svg.png'},
+	page:{keywords:['page','redirects'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Fictional_page.svg/150px-Fictional_page.svg.png'},
+	query:{keywords:['query','database'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Oxygen480-places-hidef-server-database.svg/150px-Oxygen480-places-hidef-server-database.svg.png'},
+	visualisation:{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Visualisation_1_billion.svg/150px-Visualisation_1_billion.svg.png'},
+	users:{keywords:['users','user analysis','authors'],name:"Users",icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Oxygen480-apps-system-users.svg/150px-Oxygen480-apps-system-users.svg.png'},
+	'user scripts':{keywords:['javascript'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Oxygen480-mimetypes-hidef-application-javascript.svg/150px-Oxygen480-mimetypes-hidef-application-javascript.svg.png'},
+	'flagged revisions':{icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Red_flag_waving.svg/150px-Red_flag_waving.svg.png'},
+	external:{keywords:['external','dnb','authority control','references'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/External.svg/150px-External.svg.png'},
+	'export':{keywords:['json','rss'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Oxygen480-actions-document-export.svg/150px-Oxygen480-actions-document-export.svg.png'},
+} ;
+
+var ignore = ['generator','api','tools','bot','oauth'] ; // 'javascript',
+
+var normalize_hard_heplace = {
+	category:'categories',
+	map:'maps',
+	translate:'translation',
+	visualization:'visualisation',
+	visual:'visualisation',
+	vandals:'vandalism',
+	tool:'tools',
+	template:'templates',
+	swedish:'svwiki',
+	sweden:'svwiki',
+	ptwikis:'ptwiki',
+	reference:'references',
+	redirect:'redirects',
+	recentchanges:'recent changes',
+	image:'files',
+	file:'files',
+	images:'files',
+	stats:'statistics'
+} ;
+function normalizeKeyword ( w ) {
+	w = w.toLowerCase().replace(/_/g,' ') ;
+	if ( typeof normalize_hard_heplace[w] != 'undefined' ) {
+		w = normalize_hard_heplace[w] ;
+	}
+	return w ;
+}
+
+function getToolLink ( tool_id ) {
+	var t = tools[tool_id] ;
+	var aurl = (t.author_url||'').replace(/^\#\/author\//,'https://meta.wikimedia.org/wiki/User:') ;
+	var h = "<div>" ;
+	h += "<a href='" + t.url + "' target='_blank'>" + t.name + "</a> (" ;
+	h += "<a href='" + aurl + "' target='_blank'>" + t.author + "</a>)" ;
+	h += "<div class='tooldesc'>" + t.desc + "</div>" ;
+	h += "</div>" ;
+	return h ;
+}
+
+function renderGroup ( k ) {
+	var h = '' ;
+	var v = meta[k] ;
+	var icon = v.icon ;
+	if ( typeof icon == 'undefined' ) icon = default_icon ;
+	var name = v.name ;
+	if ( typeof name == 'undefined' || name == '' ) name = k.ucFirst() ;
+	h += "<li class='group col-md-4'>" ;
+	h += "<div class='logo'>" ;
+	h += "<div style='min-height:205px;line-height:205px;'>" ;
+	h += "<img style='vertical-align:middle' src='" + icon + "' />" ;
+	h += "</div><div>" + name + "</div>" ;
+	h += "</div>" ;
+	h += "<div class='tools'>" ;
+	
+	if ( typeof v.keywords == 'undefined' ) v.keywords = [k] ;
+	
+	var tool_ids = {} ;
+	$.each ( v.keywords , function ( dummy , kw ) {
+		$.each ( keywords[kw] , function ( dummy2 , tool_id ) {
+			tools[tool_id].done = 1 ;
+			tool_ids[tool_id] = 1 ;
+		} ) ;
+	} ) ;
+
+	var tid2 = [] ;
+	$.each ( tool_ids , function ( k , v ) { tid2.push ( k ) } ) ;
+	tid2.sort(function(a,b){
+		if ( tools[a].name < tools[b].name ) return -1 ;
+		if ( tools[a].name > tools[b].name ) return 1 ;
+		return 0 ;
+	}) ;
+	$.each ( tid2 , function ( dummy , tool_id ) {
+		h += getToolLink(tool_id) ;
+	} ) ;
+
+	h += "</div>" ;
+	h += "</li>" ;
+	return h ;
+}
+
+$(document).ready ( function () {
+	$.get ( '/hay/directory/' , function ( h ) {
+		var d = $($.parseHTML(h)) ;
+		d.find('li.tools-item').each ( function () {
+			var o = $(this) ;
+
+			var tool = {
+				id : o.attr('data-tool') ,
+				name : $.trim($(o.find('h3 a').get(0)).text()) ,
+				url : $(o.find('h3 a').get(0)).attr('href') ,
+				desc : $.trim($(o.find('h4').get(0)).text()) ,
+				author : $.trim($(o.find('h5 a').get(0)).text()) ,
+				author_url : $(o.find('h5 a').get(0)).attr('href') ,
+				keywords : []
+			} ;
+			
+			o.find('p.tools-keywords a').each ( function () {
+				var kw = $(this).attr('href') ;
+				kw = kw.replace ( /^\#\/keyword\// , '' ) ;
+				kw = normalizeKeyword ( kw ) ;
+				tool.keywords.push ( kw ) ;
+				if ( typeof keywords[kw] == 'undefined' ) keywords[kw] = [] ;
+				keywords[kw].push ( tool.id ) ;
+			} ) ;
+			
+			tools[tool.id] = tool ;
+		} ) ;
+		
+		
+		var grouped = {} ;
+		$.each ( ignore , function ( k , v ) {
+			grouped[v] = 1 ;
+		} ) ;
+		$.each ( meta , function ( k , v ) {
+			if ( typeof v.keywords == 'undefined' ) v.keywords = [k] ;
+			$.each ( v.keywords , function ( k2 , v2 ) {
+				grouped[v2] = 1 ;
+			} ) ;
+		} ) ;
+		$.each ( keywords , function ( k , v ) {
+			if ( typeof grouped[k] != 'undefined' ) return ;
+			if ( v.length < min_autogroup ) return ;
+			if ( k.match(/wiki$/) ) return ; // Specific wiki
+			meta[k] = { name:k.ucFirst(),keywords:[k],icon:default_icon } ;
+		} ) ;
+		
+		var h = "<div><ul class='icons'>" ;
+		$.each ( meta , function ( k , v ) {
+			h += renderGroup ( k ) ;
+		} ) ;
+		
+		keywords.__other = [] ;
+		$.each ( tools , function ( k , v ) {
+			if ( typeof v.done == 'undefined' ) keywords.__other.push ( k ) ;
+		} ) ;
+		meta.__other = {name:'Other',keywords:['__other'],icon:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Tools.svg/150px-Tools.svg.png'} ;
+		h += renderGroup ( '__other' ) ;
+		
+		h += "</ul></div>" ;
+		$('#main').html(h) ;
+		$('#main div.logo').css({cursor:'pointer'}).click ( function () {
+			var o = $(this) ;
+			var li = $($(o.parents('li.group').get(0))) ;
+			var list = $(li.find('div.tools')) ;
+			list.toggle() ;
+			if ( li.hasClass('fullwidth') ) li.removeClass('fullwidth') ;
+			else li.addClass('fullwidth') ;
+		} ) ;
+		
+	} , 'html' ) ;
+} ) ;
+</script>
+
+<style>
+li.fullwidth {
+	width:100%;
+}
+div.tooldesc {
+	font-size:10pt;
+	color:#888;
+}
+div.tools {
+	display:none;
+}
+div.logo {
+	text-align:center;
+}
+ul.icons {
+	display:flex;
+	flex-wrap:wrap;
+}
+li.group {
+	list-style-type:none;
+	margin:5px;
+	padding:2px;
+	margin-right:20px;
+	margin-bottom:10px;
+/*	border-left:3px solid #FFF;
+	border-right:20px solid #FFF;*/
+	background-color:#EEE;
+	box-shadow: 10px 10px 5px #888888;
+}
+/*li.group:hover {
+	border-left:3px solid #00AF89;
+}*/
+</style>
+
+
+</head>
+
+<body>
+
+<div id="menubar" class="navbar navbar-static-top"><div class="navbar-inner">
+	<div class="container">
+	
+		<a class="btn btn-navbar navbar-btn" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		</a>
+		
+		<a class="brand" href="#">Tool directory</a>
+		
+		
+		<ul id="toolbar-right" class="nav pull-right">
+<!--			<li><a href="//tools.wmflabs.org/magnustools">Tools</a></li>
+			<li><a href="//toolserver.org/%7Emagnus">Olde tools</a></li>
+			<li><a href="//bitbucket.org/magnusmanske">Git</a></li>-->
+			<li><a style="margin:0px;padding:0px;margin-top:4px" href="//tools.wmflabs.org/"><img src="//wikitech.wikimedia.org/w/images/c/cf/Labslogo_thumb.png" title="Powered by Wikimedia Labs" border="0" width="32px"></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+
+<div class="container">
+	<div class="well" id='intro'>
+	An alternative view on <a href='/hay/directory/'>Hay's tool directory</a>, based on arbitrary grouping of tags, plus tags used for multiple tools.
+	</div>
+	<div class="row" id='main'>
+	</div>
+</div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link href="resources/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="resources/css/common.css">
+
+<style>
+.dablink { display:none; }
+.tright { float:right; margin-left:20px; margin-bottom:10px; }
+.tleft { float:left; margin-right:20px; margin-bottom:10px; }
+#wikipage p , #question_container {
+	text-align:justify;
+	font-family:Proxima Nova,Helvetica,Verdana,Sans-Serif,Sans Serif;
+	font-size:13pt;
+}
+div.nav_top , div.nav_bottom {
+	text-align:center;
+	padding:10px;
+}
+div.nav_top {
+	margin-bottom:10px;
+	border-bottom:1px dotted #DDD;
+}
+div.nav_bottom {
+	margin-top:10px;
+	border-top:1px dotted #DDD;
+}
+.question {
+	background-color:#DDD;
+	padding:2px;
+}
+.question label {
+	margin-right:10px;
+	display:inline-block;
+}
+.bad_answer , .good_answer , .note {
+	padding:2px;
+	margin-right:5px;
+}
+.good_answer {
+	color:green;
+}
+.bad_answer {
+	color:red;
+}
+.note {
+	background-color:gold;
+}
+div.all_good {
+	font-size:14pt;
+	text-align:center;
+	font-weight:bold;
+	color:green;
+	display:none;
+}
+#talk_li {
+	display:none;
+	margin-right:10px;
+}
+#main {
+	margin-top:10px;
+}
+#intro {
+	margin-top:10px;
+	display:none;
+}
+</style>
+
+
+<script type="text/javascript" src="resources/js/jquery/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="resources/js/bootstrap.min.js"></script>
+
+
+<script type="text/javascript">
+
+var checkmark = "&#10003;" ;
+var default_server = 'en.wikipedia.org' ;
+var server = '' ;
+var api = '' ;
+var params = {} ;
+var pages = [] ;
+var current_page = 0 ;
+var page_cache = {} ;
+var cur_q = [] ;
+var visited = [] ;
+
+function escattr ( s ) {
+	return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\//g,'&#x2F;') ;
+}
+
+function getUrlVars() {
+	var vars = {};
+	var parts = window.location.href.replace(/[#&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+		vars[key] = decodeURIComponent ( value );
+	});
+	return vars;
+}
+
+function loadParsedPage ( page , callback ) {
+	if ( undefined !== page_cache[page] ) {
+		callback ( page_cache[page]+'' ) ; // Make new string to avoid altering cache
+		return ;
+	}
+	var o = {
+		action:'parse',
+		page:page,
+		prop:'text',
+		format:'json'
+	} ;
+	var m = page.match ( /^(.+)#(\d+)$/ ) ;
+	if ( m != null ) {
+		o.page = m[1] ;
+		o.section = m[2] ;
+	}
+	$.getJSON ( api , o , function ( d ) {
+		if ( d === undefined || d.parse === undefined || d.parse.text === undefined ) {
+			callback ( "<big>THIS WIKI PAGE DOES NOT EXISTS!</big>" ) ;
+			return ;
+		}
+		page_cache[page] = d.parse.text['*'] ;
+		callback ( page_cache[page]+'' ) ; // Make new string to avoid altering cache
+	} ) ;
+}
+
+function getNavBar ( top ) {
+	var is_question = pages[current_page].type == 'question' ;
+	var h = '' ;
+	h += "<div class='" + (top?'nav_top':'nav_bottom') + "'>" ;
+	if ( !top ) h += "<div class='all_good'>All answers correct!</div>" ;
+	var parts = [] ;
+	if ( current_page > 0 ) {
+		parts.push ( "<button class='btn' onclick='showPage(" + (current_page-1) + ");return false'>Previous page</button>" ) ;
+	}
+	if ( current_page+1 < pages.length ) {
+		if ( is_question ) {
+			parts.push ( "<button class='check_answers_button btn btn-primary' onclick='checkQuestions();return false'>Check your answers!</button>" ) ;
+		}
+		parts.push ( "<button style='" + (is_question?'display:none':'') + "' class='next_page_button btn' onclick='showPage(" + (current_page+1) + ");return false'>Next page</button>" ) ;
+	}
+	h += parts.join ( ' &nbsp; ' ) ;
+	if ( top ) h += "<div class='all_good'>All answers correct!</div>" ;
+	h += "</div>" ;
+	return h ;
+}
+
+function showToC () {
+	var h = "" ;
+	$("#talk_li").hide() ;
+	h += "<h1>Table of Contents</h1>" ;
+	h += "<div class='well'>" ;
+	h += "<ol>" ;
+	$.each ( pages , function ( k , p ) {
+		var label = "??" ;
+		if ( p.type == 'question' ) {
+			label = "Question: <i>" + p.title + "</i>" ;
+		} else if ( p.type == 'wikipage' ) {
+			label = p.page.replace(/\#.+$/,'') ;
+		}
+		h += "<li>" ;
+		h += "<a href='#' onclick='showPage(" + k + ");return false'>" + label + "</a>" ;
+		if ( visited[k] ) h += " " + checkmark ;
+		h += "</li>" ;
+	} ) ;
+	h += "</ol>" ;
+	h += "</div>" ;
+	$('#main').html ( h ) ;
+	updateHash () ;
+	console.log ( params ) ;
+}
+
+function showPage ( page ) {
+	current_page = page ;
+	if ( page == -1 ) {
+		showToC() ;
+		return ;
+	}
+	showCurrentPage() ;
+}
+
+function updateHash () {
+	var parts = [] ;
+	if ( server != default_server ) parts.push ( 'server=' + encodeURIComponent(server) ) ;
+	if ( undefined !== params.module ) parts.push ( 'module=' + encodeURIComponent(params.module) ) ;
+	if ( current_page != 0 ) parts.push ( 'page=' + (current_page+1) ) ;
+	location.hash = parts.join('&') ;
+}
+
+function showQuestion ( p ) {
+	var h = '' ;
+	h += "<div style='float:right'>Page " + (current_page+1) + " of " + pages.length + "</div>" ;
+	h += "<h1>Question</h1>" ;
+	h += "<div class='lead'>" + p.title + "</div>" ;
+	h += "<div class='question_container'><form class='form-inline'>" + renderQuestion ( p ) + "</form></div>" ;
+	h += getNavBar ( false ) ;
+	$('#main').html ( h ) ;
+
+	showTalkPageButton ( params.module+'#'+p.title ) ;
+}
+
+function showWikiPage ( p ) {
+	$('#main').html ( "<i>Loading page...</i>" ) ;
+	loadParsedPage ( p.page , function ( html ) {
+		var h = '' ;
+		h += getNavBar ( true ) ;
+		h += "<div style='float:right'>Page " + (current_page+1) + " of " + pages.length + "</div>" ;
+		h += "<h1>" + p.page.replace(/\#.+$/,'') + "</h1>" ;
+		h += "<div id='wikipage' class='well'>" ;
+		h += html ;
+		h += "</div>" ;
+		h += getNavBar ( false ) ;
+		$('#main').hide().html ( h ) ;
+		$('#wikipage span.mw-editsection').remove() ;
+		$('#wikipage sup.reference').remove() ;
+		$('#wikipage .error').remove() ;
+		$('#wikipage a').each ( function () {
+			var a = $(this) ;
+			a.attr({target:'_blank'})
+			if ( a.attr('href').substr(0,1) == '/' ) a.attr({href:'//'+server+a.attr('href')}) ;
+		} ) ;
+		$('#main').show() ;
+		
+		showTalkPageButton ( p.page.replace(/#/,'#Section ') ) ;
+	} ) ;
+}
+
+function showTalkPageButton ( page ) {
+	var talk_page = page+'' ;
+	var m = talk_page.match(/^(\S+):(.+)$/) ;
+	if ( null == m ) talk_page = "Talk:" + talk_page ;
+	else talk_page = m[1] + ' talk:' + m[2] ;
+	$("#talk_li button").attr ( { url : '//'+server+'/wiki/'+encodeURIComponent(talk_page) } ) ;
+	$("#talk_li").show() ;
+}
+
+function loadDiscussionPage () {
+	var url = $("#talk_li button").attr ( 'url' ) ;
+	var win=window.open(url, '_blank');
+	win.focus();
+}
+
+function showCurrentPage () {
+	updateHash() ;
+	visited[current_page] = true ;
+	var p = pages[current_page] ;
+	if ( p.type == 'wikipage' ) {
+		showWikiPage ( p ) ;
+	} else if ( p.type == 'question' ) {
+		showQuestion ( p ) ;
+	}
+}
+
+function checkQuestions () {
+	$('.bad_answer').remove() ;
+	$('.good_answer').remove() ;
+	$('.note').remove() ;
+	var wrong = 0 ;
+	$.each ( cur_q , function ( qcnt , v ) {
+		var answered = false ;
+		var ok = 0 ;
+		$.each ( v.q , function ( k2 , v2 ) {
+			var id = "q_"+qcnt+"_"+k2 ;
+			var cb = $('#'+id) ;
+			var label = $(cb.parents('label').get(0)) ;
+			var checked = cb.is(':checked') ;
+			if ( !checked ) return ; // Not checked.
+			answered = true ;
+			if ( v2.type == '=' && checked ) {
+				// Good answer!
+				var h = "<span class='good_answer'>" ;
+				h += checkmark ;
+				h += "</span>" ;
+				label.after ( h ) ;
+				ok++ ;
+			} else if ( v2.type == '~' && checked ) {
+				// Bad answer checked
+				var h = "<span class='bad_answer'>" ;
+				h += (v2.bad_answer === undefined) ? "Sorry, wrong answer!" : v2.bad_answer ;
+				h += "</span>" ;
+				label.after ( h ) ;
+				wrong++ ;
+			}
+		} ) ;
+		if ( ok > 0 && ok < v.expected ) {
+			wrong++ ;
+			var h = "<span class='note'>" ;
+			h += "There are more correct answers!" ;
+			h += "</span>" ;
+			$('#question_'+qcnt).after ( h ) ;
+			return ;
+		} else if ( answered ) return ;
+		wrong++ ;
+		var h = "<span class='note'>" ;
+		h += "Please answer the question!" ;
+		h += "</span>" ;
+		$('#question_'+qcnt).after ( h ) ;
+	} ) ;
+
+	if ( wrong > 0 ) return ;
+	
+	$('button.check_answers_button').remove() ;
+	$('button.next_page_button').addClass('btn-success').show() ;
+	$('div.all_good').show() ;
+}
+
+function renderQuestion ( q ) {
+	var h = '' ;
+	cur_q = [] ;
+	qcnt = 0 ;
+	$.each ( q.parts , function ( k , v ) {
+		if ( v.type == 'text' ) {
+			h += v.text ;
+		} else if ( v.type == 'q' ) {
+			h += v.inline ? '<span' : '<div' ;
+			h += " class='question' id='question_"+cur_q.length+"'>" ;
+			cur_q[qcnt] = { q:v.q , expected:0 } ;
+
+			$.each ( v.q , function ( k2 , v2 ) {
+				var id = "q_"+qcnt+"_"+k2 ;
+				if ( !v.inline ) h += "<div>" ;
+				h += "<label class='checkbox'><input class='radio' type='" + (v.subtype=='multiple'?'checkbox':'radio') + "' name='radio_"+qcnt+"' id='"+id+"' /> " + v2.text + "</label>" ;
+				if ( !v.inline ) h += "</div>" ;
+				if ( v2.type == '=' ) cur_q[qcnt].expected++ ;
+			} ) ;
+
+			h += v.inline ? '</span>' : '</div>' ;
+			qcnt++ ;
+		}
+	} ) ;
+	return h ;
+}
+
+function parseQuestion ( q ) {
+	q.parts = [] ;
+	var t = (q.text+'').replace(/\s+$/,'') ;
+	while ( null != (m=t.match(/^(.*?)\{([^}]+)\}(.*)$/)) ) {
+		if ( m[1] != '' ) q.parts.push ( { type:'text' , text:m[1] } ) ;
+		var re = /([\=\~\#])([^\=\~\#]+)/g ;
+		
+		var first_key ;
+		var keys = {} ;
+		var sub = [] ;
+		while ( n = re.exec ( m[2] ) ) {
+			if ( n[1] == '#' ) {
+				sub[sub.length-1].bad_answer = n[2] ;
+				continue ;
+			}
+			sub.push ( { type:n[1] , text:n[2] } ) ;
+			keys[n[1]] = (keys[n[1]]===undefined)?1:keys[n[1]]+1 ;
+			if ( undefined === first_key ) first_key = n[1] ;
+		}
+		
+		var o = { type:'q' , q:sub , subtype:'radio' , inline:m[3]!='' } ;
+		if ( keys['-'] !== undefined && keys['~'] === undefined ) o.subtype = 'short' ;
+		else if ( (keys['=']||0) > 1 ) o.subtype = 'multiple' ;
+		q.parts.push ( o ) ;
+		t = m[3] ;
+	}
+	if ( t != '' ) q.parts.push ( { type:'text' , text:t } ) ;
+}
+
+function loadMoodle ( page ) {
+	$.getJSON ( api , {
+		action:'parse',
+		page:page,
+		prop:'wikitext',
+		format:'json'
+	} , function ( d ) {
+		if ( d.parse === undefined || d.parse.wikitext === undefined ) {
+			alert ( "Module "+page+" not found on "+server ) ;
+			return ;
+		}
+		$('#intro').hide() ;
+		var wt = d.parse.wikitext['*'] ;
+		current_page = ((params.page||1)+'').replace(/\D/g,'') * 1 - 1 ;
+		pages = [] ;
+		visited = [] ;
+		$.each ( wt.split ( /\n{2,}/ ) , function ( k , v ) {
+			v = v.replace(/\s+/g,' ').replace(/^\s+/g,'').replace(/\s+$/g,'') ;
+			if ( (m=v.match(/^\[\[(.+)\]\]$/)) != null ) {
+				pages.push ( { type:'wikipage' , page:m[1] } ) ;
+			} else if ( (m=v.match(/^\:\:\s*(.+?)\s*\:\:\s*(.+)$/)) != null ) {
+				pages.push ( { type:'question' , title:m[1] , text:m[2] } ) ;
+				parseQuestion ( pages[pages.length-1] ) ;
+			} else {
+				pages.push ( { type:'unknown' , text:v } ) ;
+			}
+		} ) ;
+		$('a.brand').click ( function () { showPage(-1) ; return false } ) ;
+		showCurrentPage() ;
+	} ) ;
+}
+
+function setServer ( s ) {
+	server = s ;
+	api = '//'+server+'/w/api.php?callback=?' ;
+	$('span.server').html ( "<a target='_blank' href='//"+server+"'>"+server+"</a>" ) ;
+	$('#server').val ( server ) ;
+}
+
+function changeServer () {
+	setServer ( $('#server').val() ) ;
+	updateHash() ;
+	return false ;
+}
+
+function loadModule () {
+	params.module = $('#module').val() ;
+	loadMoodle ( params.module ) ;
+	return false ;
+}
+
+function showMainPage () {
+	params.module = undefined ;
+	params.page = undefined ;
+	$('#main').html ( '' ) ;
+	updateHash() ;
+	$('#intro').show() ;
+	$('#talk_li').hide() ;
+}
+
+$(document).ready ( function () {
+	$('#intro a').each ( function () { $(this).attr({target:'_blank'}) } ) ;
+	params = getUrlVars() ;
+	setServer ( params.server||default_server ) ;
+	if ( params.module !== undefined ) loadMoodle ( params.module ) ;
+	else $('#intro').show() ;
+} ) ;
+
+</script>
+
+
+
+</head>
+
+<body>
+
+<div id="menubar" class="navbar navbar-static-top"><div class="navbar-inner">
+	<div class="container">
+	
+		<a class="btn btn-navbar navbar-btn" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		</a>
+		
+		<a class="brand" href="#">Table of Content</a>
+		
+		
+		<ul id="toolbar-right" class="nav pull-right">
+<!--			<li><a href="//tools.wmflabs.org/magnustools">Tools</a></li>
+			<li><a href="//toolserver.org/%7Emagnus">Olde tools</a></li>
+			<li><a href="//bitbucket.org/magnusmanske">Git</a></li>-->
+			<li id='talk_li'><button class='btn btn-info' onclick='loadDiscussionPage()'><b>Slide feedback</b></button></li>
+			<li><button class='btn' onclick="showMainPage();return false">Wikisoba</button></li>
+			<li><a style="margin:0px;padding:0px;margin-top:4px" href="//tools.wmflabs.org/"><img src="//wikitech.wikimedia.org/w/images/c/cf/Labslogo_thumb.png" title="Powered by Wikimedia Labs" border="0" width="32px"></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+
+<div class="container">
+	<div class="row" id='main'>
+	</div>
+	<div class="well" id='intro'>
+		<h1>Wikisoba</h1>
+		<p>A <a href='https://en.wikipedia.org/wiki/Portmanteau'>portmanteau</a> of <a href='https://en.wikipedia.org/wiki/Wiki'>wiki</a> and <a href='https://en.wikipedia.org/wiki/Yakisoba'>yakisoba</a>.</p>
+		<p>Wikisoba is a light-weight viewer for a modified subset of <a href='https://en.wikipedia.org/wiki/Moodle'>Moodle</a>-style slide code.</p>
+		<p>You can use any page on <span class='server'></span> as a module with such code, and all other pages on that server as slides.</p>
+		<p><form class='form-inline'><input type='text' id='server' class='span3' /> <input value='Switch wiki server' type='submit' class='btn btn-primary' onclick='changeServer();return false'/></form></p>
+		<p><form class='form-inline'><input type='text' id='module' class='span6' placeholder='Module name' /> <input value='Load module' type='submit' class='btn btn-primary' onclick='loadModule();return false'/></form></p>
+		
+		<div style='font-size:8pt !important'>
+			<p>
+				Wikisoba modules use the <a href='https://en.wikipedia.org/wiki/GIFT_%28file_format%29'>GIFT</a> syntax. Some caveats:
+				<ul>
+					<li>All "pages" are separated by at least one blank line in the GIFT code.</li>
+					<li>A GIFT line containing just a wiki link will show the linked wiki page, with some "prettyfication" (making it look like a "slide" rather than a wiki page).</li>
+					<li>You can specify a section in the wiki link; only the specified section will be transcluded to the quiz. Just add a section number (not a heading!) to the link with '#'.</li>
+				</ul>
+			</p>
+		</div>
+		
+	</div>
+</div>
+
+
+</body>
+
+</html>

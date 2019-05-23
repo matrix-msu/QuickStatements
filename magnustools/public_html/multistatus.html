@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="nofollow" />
+<script type="text/javascript" src="/magnustools/resources/js/jquery/jquery-1.10.1.min.js"></script>
+<style type="text/css">
+.status {
+	color:white;
+	text-align:center;
+	width:100px;
+}
+.loading {
+	background-color:#75B4FF !important;
+}
+.up {
+	background-color:#2DC800 !important;
+}
+.down {
+	background-color:#FF4848 !important;
+}
+#status {
+	margin-bottom:20px;
+}
+</style>
+</head>
+
+<body>
+
+<table style='width:100%'>
+
+<tr>
+	<th>CatScan2</th>
+	<th>QuickIntersection</th>
+	<th>Autolist</th>
+	<th>Game</th>
+</tr>
+<tr>
+	<td><iframe style='width:300px;height:700px' src='/catscan2/server-status'></iframe></td>
+	<td><iframe style='width:300px;height:700px' src='/quick-intersection/server-status'></iframe></td>
+	<td><iframe style='width:300px;height:700px' src='/autolist/server-status'></iframe></td>
+	<td><iframe style='width:300px;height:700px' src='/wikidata-game/server-status'></iframe></td>
+	<td><div id='main'></td>
+</tr>
+
+</table>
+
+<div id='time' style='font-size:14pt'></div>
+
+</body>
+
+
+
+<script>
+$(document).ready ( function() {
+	
+	var tools = {} ;
+	var running1 = 0 ;
+	var running2 = 0 ;
+	
+	function setStatus ( tool ) {
+		var status = tools[tool].status ;
+		$('#'+tool).removeClass('loading').removeClass('down').removeClass('up').addClass(status).html(status) ;
+	}
+	
+	function step3 ( tool ) {
+		running2-- ;
+		setStatus ( tool ) ;
+		if ( running2 > 0 ) return ;
+		$('#status').html ( 'Checks complete' ) ;
+	}
+
+	function step2() {
+		running1-- ;
+		if ( running1 > 0 ) return ;
+		
+		$('#status').html ( 'Checking tools' ) ;
+		
+		var tk = [] ;
+		$.each ( tools , function ( tool , v ) { tk.push ( tool ) } ) ;
+		tk = tk.sort() ;
+		
+		var h = "<table class='table-striped table-condensed'><tbody>" ;
+		$.each ( tk , function ( dummy , tool ) {
+			h += "<tr><td><a target='_blank' href='/" + tool + "/'>" + tool + "</a></td><td class='status' id='" + tool + "'></td></tr>" ;
+		} ) ;
+		h += "</tbody></table>" ;
+		$('#main').html ( h ) ;
+
+		$.each ( tools , function ( tool , v ) {
+			setStatus ( tool ) ;
+			if ( v.status != 'loading' ) return ;
+			running2++ ;
+			var url = '/' + tool + '/' ;
+			$.get ( url , function ( d ) {
+				tools[tool].status = 'up' ;
+				step3(tool) ;
+			} ) . fail ( function () {
+				tools[tool].status = 'down' ;
+				step3(tool) ;
+			} ) ;
+		} ) ;
+
+	}
+	
+	$('#status').html ( 'Loading tool lists' ) ;
+	$.each ( [ '/magnustools/toolinfo.json' , '/wikidata-todo/toolinfo.json' ] , function ( k , url ) {
+		running1++ ;
+		$.get ( url , function ( d ) {
+			$.each ( d , function ( k1 , v ) {
+				if ( v.url.match(/tools.wmflabs.org/) == null ) return ;
+				var tool = v.url.replace ( /^.*tools.wmflabs.org\// , '' ) ;
+				tool = tool.replace ( /\/.*$/ , '' ) ;
+				if ( typeof tools[tool] == 'undefined' ) tools[tool] = { status:'loading'} ;
+			} ) ;
+//			console.log ( d ) ;
+			step2() ;
+		} , 'json' ) . fail ( function () {
+			var tool = url.replace ( /\/[^\/]*$/ , '' ) ;
+			tools[tool] = { status:'fail'} ;
+//			console.log ( "FAIL" ) ;
+			step2() ;
+		} ) ;
+	} ) ;
+
+	setTimeout("location.reload(true);",60*10*1000);
+	var d = new Date();
+	var s = (1+d.getHours()) + ":" + (1+d.getMinutes()) + ":" + (1+d.getSeconds()) ;
+	$('#time').html ( "Last loaded at " + s + " UTC" ) ;
+	
+} ) ;
+
+
+</script>
+
+
+</html>

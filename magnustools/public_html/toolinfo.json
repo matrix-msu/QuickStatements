@@ -1,0 +1,755 @@
+[
+{
+	"name" : "mm_wdq" ,
+    "title" : "WikiData Query (WDQ)",
+    "description" : "A powerful API to interrogate Wikidata, used by many tools and third-party projects.",
+    "url" : "http://wdq.wmflabs.org",
+    "keywords" : "wikidata, query, wdq, pagepile",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/wikidataquery"
+},
+{
+	"name" : "mm_wikidata_game" ,
+    "title" : "The Wikidata Game",
+    "description" : "A set of games to quickly add statements to Wikidata.",
+    "url" : "http://tools.wmflabs.org/wikidata-game",
+    "keywords" : "wikidata, game, gamification, api",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/wikidata-game"
+},
+{
+	"name" : "mm_terminator" ,
+    "title" : "Wikidata Terminator",
+    "description" : "Shows identical terms (labels) with missing descriptions, popular items with missing labels etc.",
+    "url" : "http://tools.wmflabs.org/wikidata-terminator",
+    "keywords" : "wikidata, label, language, translation, pagepile",
+    "author" : "Magnus Manske"
+},
+{
+	"name" : "mm_reasonator" ,
+    "title" : "Reasonator",
+    "description" : "Human-readable display of Wikidata.",
+    "url" : "http://tools.wmflabs.org/reasonator",
+    "keywords" : "wikidata, reasonator, api, visual, language, sparql",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/reasonator"
+},
+{
+    "name" : "mm_nitol",
+    "title" : "Not in the other language",
+    "description" : "Finds Wikidata items with a Wikipedia page in language A but not in B.",
+    "url" : "http://tools.wmflabs.org/not-in-the-other-language",
+    "keywords" : "wikidata, interwiki, language, pagepile",
+    "author" : "Magnus Manske"
+},
+{
+	"name" : "mm_mixnmatch",
+    "title" : "Mix'n'match",
+    "description" : "GLAM catalog/Wikidata matching tool; red link lists on steroids.",
+    "url" : "http://tools.wmflabs.org/mix-n-match",
+    "keywords" : "glam, wikidata, redlinks",
+    "author" : "Magnus Manske"
+},
+{
+
+    "name": "mm_glamorous2",
+    "title": "GLAMorous 2",
+    "description": "A tool to keep track usage and views of Commons images on other projects.",
+    "url": "http://tools.wmflabs.org/glamtools/glamorous/",
+    "keywords": "glam, files, images, views, commons",
+    "author": "Magnus Manske",
+    "repository": "https://bitbucket.org/magnusmanske/glamtools"
+
+},
+{
+	"name" : "mm_flickr2commons",
+    "title" : "Flickr2Commons",
+    "description" : "Can upload single and multiple files from Flickr to Commons.",
+    "url" : "http://tools.wmflabs.org/flickr2commons",
+    "keywords" : "commons, flickr, files, multimedia, transfer, copy, tooltranslate",
+    "author" : "Magnus Manske"
+},
+{
+	"name" : "mm_geograph2commons",
+    "title" : "Geograph2Commons",
+    "description" : "Can upload a single file from geograph.co.uk etc. to Commons.",
+    "url" : "http://tools.wmflabs.org/geograph2commons",
+    "keywords" : "commons, file, transfer, copy, geograph",
+    "author" : "Magnus Manske"
+},
+{
+	"name" : "mm_commonshelper",
+    "title" : "CommonsHelper",
+    "description" : "Can transfer files from wiki(p|m)edia to Commons.",
+    "url" : "http://tools.wmflabs.org/commonshelper",
+    "keywords" : "commons, wikipedia, files, transfer, copy",
+    "author" : "Magnus Manske"
+},
+{
+	"name" : "mm_add_information",
+    "title" : "Add information",
+    "description" : "Adds an {{Information}} template to a file on Commons.",
+    "url" : "http://tools.wmflabs.org/add-information",
+    "keywords" : "commons, information, template",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/add_information"
+},
+{
+    "name" : "mm_glamorous",
+    "title" : "GLAMorous",
+    "description" : "A tool to keep track of Commons images used on other projects.",
+    "url" : "http://tools.wmflabs.org/glamtools/glamorous.php",
+    "keywords" : "glam, files, images, views, commons",
+    "author" : "Magnus Manske",
+	"repository" : "https://bitbucket.org/magnusmanske/glamtools"
+} ,
+{
+    "name" : "mm_baglama",
+    "title" : "BaGLAMa",
+    "description" : "Monthly view counts for pages containing images from selected Commons categories. Supersedec by BaGLAMa2.",
+    "url" : "http://tools.wmflabs.org/glamtools/baglama.php",
+    "keywords" : "glam, files, images, views, commons",
+    "author" : "Magnus Manske",
+	"repository" : "https://bitbucket.org/magnusmanske/glamtools"
+} ,
+{
+    "name" : "mm_baglama2",
+    "title" : "BaGLAMa 2",
+    "description" : "Monthly view counts for pages containing images from selected Commons categories.",
+    "url" : "http://tools.wmflabs.org/glamtools/baglama2/",
+    "keywords" : "glam, files, images, views, commons",
+    "author" : "Magnus Manske",
+	"repository" : "https://bitbucket.org/magnusmanske/glamtools"
+} ,
+{
+    "name" : "mm_treeviews",
+    "title" : "TreeViews",
+    "description" : "Monthly view statistics for category trees.",
+    "url" : "http://tools.wmflabs.org/glamtools/treeviews/",
+    "keywords" : "glam, files, images, views, commons",
+    "author" : "Magnus Manske",
+	"repository" : "https://bitbucket.org/magnusmanske/glamtools"
+} ,
+{
+    "name" : "mm_unused_files",
+    "title" : "Unused files",
+    "description" : "A list of files not used on Wikipedia, from a Commons category tree.",
+    "url" : "http://tools.wmflabs.org/magnustools/unused_files.php",
+    "keywords" : "glam, files, images, views, commons, list, unused",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_deep_insight",
+    "title" : "Deep InSight",
+    "description" : "Shows unsighted pages by category, including subcategories.",
+    "url" : "http://tools.wmflabs.org/sighting/deep_insight.php",
+    "keywords" : "list, wikipedia, flagged revisions",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_deep_out_of_sight",
+    "title" : "Deep out-of-sight",
+    "description" : "Shows out-of-date sighted versions by category, including subcategories.",
+    "url" : "http://tools.wmflabs.org/sighting/deep_out_of_sight.php",
+    "keywords" : "list, wikipedia, flagged revisions",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_random_out_of_sight",
+    "title" : "Random out-of-sight",
+    "description" : "Shows out-of-date sighted versions that only differ a little by size (typo fixes etc).",
+    "url" : "http://tools.wmflabs.org/sighting/random_out_of_sight.php",
+    "keywords" : "list, wikipedia, flagged revisions",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_out_of_sight",
+    "title" : "Out-of-sight",
+    "description" : "Randomly shows articles in de.wikipedia with out-of-date sighted versions.",
+    "url" : "http://tools.wmflabs.org/sighting/outofsight.php",
+    "keywords" : "list, wikipedia, flagged revisions",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_book2scroll",
+    "title" : "Book2scroll",
+    "description" : "A book reader for Wikisource.",
+    "url" : "http://tools.wmflabs.org/book2scroll",
+    "keywords" : "wikisource, book, reader",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_map2wp",
+    "title" : "Map2WP",
+    "description" : "Attempts to map DNB articles on wikisource to wikipedia.",
+    "url" : "http://tools.wmflabs.org/dnbtools/map2wp.php",
+    "keywords" : "wikisource, DNB, wikipedia",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_wikisource_dnb",
+    "title" : "Wikisource DNB",
+    "description" : "Looks for inconsistencies in the wikisource link structures of the DNB.",
+    "url" : "http://tools.wmflabs.org/dnbtools/dnb_wikisource.php",
+    "keywords" : "wikisource, dnb",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_dnb_ratios",
+    "title" : "DNB ratios",
+    "description" : "Gives page length ratios between Wikisource and Wikipedia articles.",
+    "url" : "http://tools.wmflabs.org/dnbtools/dnb_ratios.php",
+    "keywords" : "wikisource, dnb, wikipedia",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_dnb_link_finder",
+    "title" : "DNB link finder",
+    "description" : "Finds links to Google books DNB that would better point to Wikisource.",
+    "url" : "http://tools.wmflabs.org/dnbtools/dnb_link_finder.php",
+    "keywords" : "wikisource, dnb, google books",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_geohack",
+    "title" : "Geohack",
+    "description" : "Meta-map tool. Used on Wikipedia. [example: Berlin]",
+    "url" : "http://tools.wmflabs.org/geohack/geohack.php?pagename=Berlin&params=52_31_N_13_23_E_type:city(3292365)_region:DE",
+    "keywords" : "map, wikipedia, external",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/geohack"
+} ,
+{
+    "name" : "mm_cas",
+    "title" : "CAS",
+    "description" : "Shows links to CAS numbers for chemicals. [example: Trisodium phosphate]",
+    "url" : "http://tools.wmflabs.org/magnustools/cas.php?language=en&cas=7601-54-9&title=Trisodium%20phosphate",
+    "keywords" : "wikipedia, infobox, cas, chemicals, external",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_isin",
+    "title" : "ISIN",
+    "description" : "Shows links to ISIN numbers (stock market) based on parameter.",
+    "url" : "http://tools.wmflabs.org/isin/?language=de&isin=GB00B24CGK77",
+    "keywords" : "wikipedia, infobox, isin, stock market, external",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_prep_bio",
+    "title" : "PrepBio",
+    "description" : "Helps to generate infobox templates for biographies.",
+    "url" : "http://tools.wmflabs.org/magnustools/prepbio.php",
+    "keywords" : "wikipedia, wikitext, generator, infobox",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_html2wiki",
+    "title" : "HTML2wiki",
+    "description" : "Can convert some HTML into wikitext, especially tables.",
+    "url" : "http://tools.wmflabs.org/magnustools/html2wiki.php",
+    "keywords" : "wikipedia, wikitext, generator, html, tables",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_tab2wiki",
+    "title" : "Tab2Wiki",
+    "description" : "Converts tables (tab-delimited, e.g. copied from Excel) to Wikitext tables.",
+    "url" : "http://tools.wmflabs.org/magnustools/tab2wiki.php",
+    "keywords" : "wikipedia, wikitext, generator, tables",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_wd_reconcile",
+    "title" : "Wikidata Reconcile",
+    "description" : "A reconciliation API for Wikidata.",
+    "url" : "https://tools.wmflabs.org/wikidata-reconcile/",
+    "keywords" : "wikidata, reconcile, reconciliation, api",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_pagepile",
+    "title" : "PagePile",
+    "description" : "A tool to generate and manage lists of pages, and to use them across many other tools.",
+    "url" : "https://tools.wmflabs.org/pagepile/",
+    "keywords" : "list, lists, wikipedia, wikidata, generator, pagepile",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_pagepile2kml",
+    "title" : "PagePile2KML",
+    "description" : "Generates KML from a PagePile list of Wikidata items or articles (via Wikidata).",
+    "url" : "https://tools.wmflabs.org/wikidata-todo/pagepile2kml.php",
+    "keywords" : "KML, map, maps, wikipedia, wikidata, pagepile",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_makeref",
+    "title" : "MakeRef",
+    "description" : "A form to generate references.",
+    "url" : "http://tools.wmflabs.org/makeref/",
+    "keywords" : "wikipedia, wikitext, generator, references",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_isbn2wiki",
+    "title" : "ISBN2Wiki",
+    "description" : "Generates wikitext reference texts for ISBNs.",
+    "url" : "http://tools.wmflabs.org/isbn2wiki/",
+    "keywords" : "wikitext, wikipedia, generator, isbn, references",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_get_article_intro",
+    "title" : "GetArticleIntro",
+    "description" : "Returns the first sentence of an article as JSONP.",
+    "url" : "http://tools.wmflabs.org/magnustools/get_article_intro.php",
+    "keywords" : "wikipedia, api, extraction, jsonp",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_update_article_counter",
+    "title" : "Update article counter",
+    "description" : "Updates the number of articles in a WikiProject.",
+    "url" : "http://tools.wmflabs.org/magnustools/update_article_counter.php",
+    "keywords" : "wikipedia, wikiproject, editing",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_templator",
+    "title" : "Templator",
+    "description" : "Generates templates from forms.",
+    "url" : "http://tools.wmflabs.org/templator/",
+    "keywords" : "wikitext, templates, generator",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_missing_topics",
+    "title" : "MissingTopics",
+    "description" : "Finds the 'most wanted' missing topics in an article or category tree.",
+    "url" : "http://tools.wmflabs.org/missingtopics",
+    "keywords" : "missing, redlinks, wikipedia, list, category",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_wiki_todo",
+    "title" : "Wiki ToDo",
+    "description" : "Finds articles with things to do for you!",
+    "url" : "http://tools.wmflabs.org/wiki-todo/",
+    "keywords" : "wikipedia, todo",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/wikidata-todo"
+} ,
+{
+    "name" : "mm_most_wanted",
+    "title" : "Most wanted",
+    "description" : "Topics, measured by redlink count, for several languages.",
+    "url" : "http://tools.wmflabs.org/most-wanted/",
+    "keywords" : "missing, redlinks, list",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_get_distinct_authors",
+    "title" : "GetDistinctAuthors",
+    "description" : "Gives the distinct (non-IP) list of editors on a set of articles.",
+    "url" : "http://tools.wmflabs.org/magnustools/get_distinct_authors.php",
+    "keywords" : "authors, editors, users, wikipedia, list",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_herding_sheep",
+    "title" : "Herding Sheep",
+    "description" : "Shows the (last) edits of all users in a user category.",
+    "url" : "http://tools.wmflabs.org/magnustools/herding_sheep.php",
+    "keywords" : "authors, editors, users, wikipedia, list",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_trans_parent",
+    "title" : "Trans-parent",
+    "description" : "Finds potential translators between two languages amongst Wikipedians.",
+    "url" : "http://tools.wmflabs.org/magnustools/transparent.php",
+    "keywords" : "translation, wikipedia, editors, users, authors",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_data_url",
+    "title" : "Data URL",
+    "description" : "Demo for images as data URLs in Wikipedia, with or without WEBP.",
+    "url" : "http://tools.wmflabs.org/magnustools/wp_data_url.php?lang=en&title=Richard_Dawkins",
+    "keywords" : "html, demo, images, webp, wikipedia",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_joanjoc",
+    "title" : "JoanJoc's tools",
+    "description" : "Something with language links.",
+    "url" : "http://tools.wmflabs.org/joanjoc/",
+    "keywords" : "interlanguage",
+    "author" : "Magnus Manske, JoanJoc"
+} ,
+{
+    "name" : "mm_no_information",
+    "title" : "No Information",
+    "description" : "Files with no {{Information}} template. Merged from 'all_no_info' and 'mynoinfo' on toolserver.",
+    "url" : "http://tools.wmflabs.org/add-information/no_information.php",
+    "keywords" : "commons, files, information, missing",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_usual_suspects",
+    "title" : "The Usual Suspects",
+    "description" : "File management tool, merged 'Bad Boys' and 'Bad Old Ones' from toolserver.",
+    "url" : "http://tools.wmflabs.org/usualsuspects/",
+    "keywords" : "commons, files",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_file_reuse",
+    "title" : "File reuse",
+    "description" : "Allows you to drag'n'drop a file onto it, and show a thumbnail and attribution.",
+    "url" : "http://tools.wmflabs.org/magnustools/file_reuse/",
+    "keywords" : "commons, files, reuse, attribution, demo, drag'n'drop",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_fist",
+    "title" : "FIST",
+    "description" : "The Free Image Search Tool.",
+    "url" : "http://tools.wmflabs.org/fist/fist.php",
+    "keywords" : "external, search, images, files, commons, wikipedia, flickr, geograph, pagepile",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_url2commons",
+    "title" : "URL2Commons",
+    "description" : "Can transfer files from a list of URLs to Commons.",
+    "url" : "http://tools.wmflabs.org/url2commons/index.html",
+    "keywords" : "commons, files, images, upload, external",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_file_siblings",
+    "title" : "File siblings",
+    "description" : "Builds, for a file, an HTML fragment with thumbnails of related images.",
+    "url" : "http://tools.wmflabs.org/file-siblings/",
+    "keywords" : "commons, files, category, gallery, wikipedia",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_file_siblings_interface",
+    "title" : "File siblings interface",
+    "description" : "Wikipedia JavaScript interface for File siblings.",
+    "url" : "http://de.wikipedia.org/wiki/MediaWiki:Gadget-ImageSiblings.js",
+    "keywords" : "commons, files, category, gallery, wikipedia, interface, javascript",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_file_dupes",
+    "title" : "FileDupes",
+    "description" : "For finding image duplicates. A merge of 'userdupes' and 'commons_dupes' from toolserver.",
+    "url" : "http://tools.wmflabs.org/filedupes/",
+    "keywords" : "commons, wikipedia, images, files, duplicates",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_multidesc",
+    "title" : "MultiDesc",
+    "description" : "Generates multilingual gallery and file descriptions (a merge of 'whatisthat' and 'commons_sumitup' from toolserver).",
+    "url" : "http://tools.wmflabs.org/multidesc/",
+    "keywords" : "commons, images, files, descriptions, generator",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_wiki2playlist",
+    "title" : "Wiki2playlist",
+    "description" : "Generates a .M3U playlist from files hosted on Commons.",
+    "url" : "http://tools.wmflabs.org/magnustools/wiki2playlist.php",
+    "keywords" : "commons, multimedia, audio, m3u, playlist",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_icommons",
+    "title" : "iCommons",
+    "description" : "A Commons browser for mobile devices.",
+    "url" : "http://tools.wmflabs.org/icommons/",
+    "keywords" : "commons, mobile, visualisation",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_flickrfree",
+    "title" : "FlickrFree",
+    "description" : "Shows free, recently uploaded images on Flickr, ready for transfer to Commons.",
+    "url" : "http://tools.wmflabs.org/magnustools/flickrfree.php",
+    "keywords" : "flickr, images, external",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_catscan2",
+    "title" : "CatScan 2",
+    "description" : "For complex category tree and template intersection.",
+    "url" : "http://tools.wmflabs.org/catscan2/catscan2.php",
+    "keywords" : "category, categories, templates, wikipedia, trees, query, pagepile",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/catscan2"
+} ,
+{
+    "name" : "mm_reverse_category_tree",
+    "title" : "Reverse category tree",
+    "description" : "Get the categories a page or file is in, all the way down to the roots.",
+    "url" : "http://tools.wmflabs.org/catscan2/reverse_tree.php",
+    "keywords" : "category, categories, wikipedia, commons, query, trees",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/catscan2"
+} ,
+{
+    "name" : "mm_pages_in_categories",
+    "title" : "Pages in categories",
+    "description" : "Counts pages in a category tree.",
+    "url" : "http://tools.wmflabs.org/catscan2/pages_in_cats.php",
+    "keywords" : "wikipedia, category, categories",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/catscan2"
+} ,
+{
+    "name" : "mm_catfood",
+    "title" : "CatFood",
+    "description" : "RSS feeds for pages and files based on category or user name.",
+    "url" : "http://tools.wmflabs.org/catfood/catfood.php",
+    "keywords" : "category, categories, rss, files, images",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_commons_image_feed",
+    "title" : "Commons image feed",
+    "description" : "RSS image feeds for Commons categories to use in screensavers etc.",
+    "url" : "http://tools.wmflabs.org/catfood/commons_image_feed.php",
+    "keywords" : "commons, rss, screensaver, images, categories",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_catnap",
+    "title" : "CatNap",
+    "description" : "Lists Wikipedia articles in a category grouped by their other categories.",
+    "url" : "http://tools.wmflabs.org/catnap",
+    "keywords" : "wikipedia, categories, category, tree, query",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_crosscats",
+    "title" : "CrossCats",
+    "description" : "Finds articles that ought to be in a category tree in a language via categories in other languages.",
+    "url" : "http://tools.wmflabs.org/catscan2/cross_cats.php",
+    "keywords" : "category, categories, wikipedia, interlanguage, tree, query",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/catscan2"
+} ,
+{
+    "name" : "mm_random_page_in_cat",
+    "title" : "Random page in category",
+    "description" : "Redirects to a random page in a category.",
+    "url" : "http://tools.wmflabs.org/magnustools/randomarticle.php",
+    "keywords" : "random, wikipedia, category, categories, tree, redirect",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/magnustools"
+} ,
+{
+    "name" : "mm_toolscript",
+    "title" : "ToolScript",
+    "description" : "An interface to write and run JavaScript code, with convenient classes to get category trees, run WDQ queries etc.",
+    "url" : "https://tools.wmflabs.org/toolscript/index.html",
+    "keywords" : "javascript, scripting, code, wdq, categories, tree",
+    "author" : "Magnus Manske",
+    "repository" : "https://bitbucket.org/magnusmanske/toolscript"
+} ,
+{
+    "name" : "mm_misstake",
+    "title" : "Ranked missing articles",
+    "description" : "Finds and ranks missing articles from page links",
+    "url" : "http://tools.wmflabs.org/magnus-toolserver/misstake.php",
+    "keywords" : "wikipedia, list, missing",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_redirector",
+    "title" : "Redirector",
+    "description" : "Finds wanted redirects across WIkipedia languages",
+    "url" : "http://tools.wmflabs.org/magnus-toolserver/redirector.php",
+    "keywords" : "wikipedia, redirect, redirects, languages",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_persondata",
+    "title" : "Persondata",
+    "description" : "Generates {{Persondata}} template (de/en)",
+    "url" : "http://tools.wmflabs.org/magnus-toolserver/persondata.php",
+    "keywords" : "wikipedia, wikitext, generator, persondata, biography",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_related_places",
+    "title" : "Related places",
+    "description" : "Generates KML for all places related to (linked from) an article",
+    "url" : "http://tools.wmflabs.org/magnus-toolserver/related_places.php",
+    "keywords" : "wikipedia, kml, maps",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_bong",
+    "title" : "Bong",
+    "description" : "Bing-like Wikimedia search interface.",
+    "url" : "http://tools.wmflabs.org/magnus-toolserver/bong.php",
+    "keywords" : "",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_commons_api",
+    "title" : "Commons API",
+    "description" : "An experimental API to return author and media data from Commons as XML.",
+    "url" : "http://tools.wmflabs.org/magnus-toolserver/commonsapi.php",
+    "keywords" : "commons, files, api",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "",
+    "title" : "",
+    "description" : "",
+    "url" : "",
+    "keywords" : "",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_wd_species_commons",
+    "title" : "Wikidata species images",
+    "description" : "Wikidata items about species that have no image, but potential images on Commons.",
+    "url" : "http://tools.wmflabs.org/fist/wd_species_commons.php",
+    "keywords" : "wikidata, commons, images, files",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_edit_counter",
+    "title" : "Quick edit counter",
+    "description" : "Simple user edit count breakdown, as a replacement for when supercount is down.",
+    "url" : "http://tools.wmflabs.org/magnustools/quick_counter.php",
+    "keywords" : "edit, editcount",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_autodesc",
+    "title" : "AutoDesc",
+    "description" : "Wikidata automated description API",
+    "url" : "http://tools.wmflabs.org/autodesc",
+    "keywords" : "wikidata, api, description",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_get_item_names",
+    "title" : "Get item names",
+    "description" : "Generates a list of Wikidata labels for a list of items, with language fallback",
+    "url" : "https://tools.wmflabs.org/wikidata-todo/get_item_names.php",
+    "keywords" : "wikidata, label, labels, name, names, language, languages, pagepile",
+    "author" : "Magnus Manske"
+} ,
+{
+    "name" : "mm_linked_items",
+    "title" : "Linked items",
+    "description" : "Generates a list of Wikidata items, from wikitext links or PagePile",
+    "url" : "https://tools.wmflabs.org/wikidata-todo/get_item_names.php",
+    "keywords" : "wikidata, item, items, link, links, wikipedia, pagepile",
+    "author" : "Magnus Manske"
+} ,
+{
+	"name" : "mm_wikishootme" ,
+	"title" : "Wiki ShootMe!" ,
+	"description" : "Shows Wikidata items in your area that do not have an image" ,
+	"url" : "https://tools.wmflabs.org/wikishootme/" ,
+	"keywords" : "wikidata, commons, image, around, coordinate, coordinates" ,
+	"author" : "Magnus Manske" ,
+	"repository" : ""
+} ,
+{
+	"name" : "mm_wikisoba" ,
+	"title" : "WikiSoba" ,
+	"description" : "A demo for a quiz system, can utilize Wikipedia pages as page source" ,
+	"url" : "https://tools.wmflabs.org/wikisoba/" ,
+	"keywords" : "quiz, demo" ,
+	"author" : "Magnus Manske" ,
+	"repository" : "https://bitbucket.org/magnusmanske/wikisoba"
+} ,
+{
+	"name" : "mm_widar" ,
+	"title" : "WiDaR" ,
+	"description" : "OAuth login wrapper for several other tools. Wikidata-centric." ,
+	"url" : "https://tools.wmflabs.org/widar/" ,
+	"keywords" : "wikidata, oauth, login" ,
+	"author" : "Magnus Manske" ,
+	"repository" : ""
+} ,
+{
+	"name" : "mm_listeria" ,
+	"title" : "Listeria" ,
+	"description" : "Generates lists on Wikipedias, based on Wikidata queries. Daily updates." ,
+	"url" : "https://tools.wmflabs.org/listeria/" ,
+	"keywords" : "list, lists, wdq, sparql, wikidata, query, generator" ,
+	"author" : "Magnus Manske" ,
+	"repository" : "https://bitbucket.org/magnusmanske/listeria"
+} ,
+{
+	"name" : "mm_metamine" ,
+	"title" : "MetaMine" ,
+	"description" : "Demo tool to show crossover between Wikidata and ContentMine" ,
+	"url" : "https://tools.wmflabs.org/metamine/" ,
+	"keywords" : "wikidata, contentmine, demo" ,
+	"author" : "Magnus Manske" ,
+	"repository" : ""
+} ,
+{
+	"name" : "mm_tooldir" ,
+	"title" : "Tool directory" ,
+	"description" : "Alternative display of Hay's tool directory" ,
+	"url" : "https://tools.wmflabs.org/magnustools/hay2.html" ,
+	"keywords" : "tools, directory, demo" ,
+	"author" : "Magnus Manske" ,
+	"repository" : ""
+} ,
+{
+	"name" : "mm_petscan" ,
+	"title" : "PetScan" ,
+	"description" : "Replacement for CatScan2, QuickIntersection, Creator, Autolist etc." ,
+	"url" : "https://petscan.wmflabs.org" ,
+	"keywords" : "categories, intersection, WDQS, SPARQL, pagepile, wikidata" ,
+	"author" : "Magnus Manske" ,
+	"repository" : "https://bitbucket.org/magnusmanske/petscan"
+} ,
+{
+	"name" : "mm_tooltranslate" ,
+	"title" : "Tool Translate" ,
+	"description" : "Community-driven translation of tool interfaces" ,
+	"url" : "https://tools.wmflabs.org/tooltranslate/" ,
+	"keywords" : "translation, interface, i18n, tooltranslate" ,
+	"author" : "Magnus Manske" ,
+	"repository" : "https://bitbucket.org/magnusmanske/tooltranslate"
+} ,
+{
+    "name" : "mm_wdfist",
+    "title" : "Wikidata FIST",
+    "description" : "The Free Image Search Tool for Wikidata. Find items without image, but images in associated Wikipedia articles.",
+    "url" : "http://tools.wmflabs.org/fist/wdfist/index.html",
+    "keywords" : "wikidata, images, files, wdq, pagepile, sparql, petscan, tooltranslate",
+    "author" : "Magnus Manske"
+} 
+]

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link href="resources/dist3/css/bootstrap.min.css" rel="stylesheet">
+<!--<link rel="stylesheet" type="text/css" href="resources/css/common.css">-->
+
+<style>
+span.searchmatch {
+	background-color:#FFFFC8;
+}
+div.item {
+	border:1px solid #DDD;
+	border-radius: 5px;
+	box-shadow: 10px 10px 5px #888;
+	margin-bottom:15px;
+	padding:3px;
+}
+div.preview {
+	display:block;
+	border-top:1px solid #ddd;
+	padding-top:2px;
+	margin-top:2px;
+}
+div.sites {
+	display:block;
+}
+div.miniicon {
+	display:table-cell;
+	width:30px;
+	text-align:center;
+	vertical-align:top;
+}
+div.searchresult {
+	font-size:9pt;
+	display:block;
+}
+.thumbnail {
+	margin:2px;
+	width: 120px;
+	display: inline-block;
+	vertical-align: top;
+}
+</style>
+
+
+<script type="text/javascript" src="resources/js/jquery/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="resources/dist3/js/bootstrap.min.js"></script>
+<!--<script type="text/javascript" src="resources/js/common.js"></script>-->
+
+
+<script type="text/javascript">
+
+var icons = {
+	'wiktionary' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Wiktionary-logo.svg/135px-Wiktionary-logo.svg.png',
+	'commonswiki' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Commons-logo.svg/135px-Commons-logo.svg.png',
+	'wikinews' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Wikinews_favicon.svg/135px-Wikinews_favicon.svg.png' ,
+	'wikidatawiki' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Wikidata-logo_S.svg/135px-Wikidata-logo_S.svg.png' ,
+	'wikipedia' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/135px-Wikipedia-logo-v2.svg.png' ,
+	'wikibooks' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Wikibooks-logo.svg/135px-Wikibooks-logo.svg.png' ,
+	'wikivoyage' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Wikivoyage-logo.svg/135px-Wikivoyage-logo.svg.png' ,
+	'wikisource' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Wikisource-logo.svg/135px-Wikisource-logo.svg.png' ,
+	'wikiversity' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Wikiversity-logo.svg/135px-Wikiversity-logo.svg.png' ,
+	'wikispecies' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Wikispecies-logo.svg/135px-Wikispecies-logo.svg.png' ,
+	'wikiquote' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Wikiquote-logo.svg/135px-Wikiquote-logo.svg.png'
+} ;
+
+var query = '' ;
+var lang = '' ;
+var count = 0 ;
+var results = {} ;
+var q2page = {} ;
+var load_q_labels = [] ;
+
+function ucFirst(string) {
+	if ( typeof string == 'undefined' ) return '' ;
+	return string.substring(0, 1).toUpperCase() + string.substring(1);
+}
+
+function escattr ( s ) {
+	return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\//g,'&#x2F;') ;
+}
+
+function getIconLink ( key ) {
+	var p = results[key] ;
+	var pr = key.match ( /^(.*?)(wik.+?):/ ) ;
+	var project = pr[2] ;
+	if ( project == 'wiki' ) project = 'wikipedia' ;
+	if ( pr[1] == 'commons' ) project = 'commonswiki' ;
+	if ( pr[1] == 'wikidata' ) project = 'wikidatawiki' ;
+	
+	var server = pr[1] + '.' + pr[2] ;
+	if ( project == 'wikipedia' ) server += 'pedia' ;
+	if ( project == 'wikidatawiki' ) server = 'www.wikidata' ;
+	if ( project == 'commonswiki' ) server = 'commons.wikimedia' ;
+	server += '.org' ;
+	
+	var h = "<div>" ; // Container
+	
+	h += "<div>" ; // Row 1
+
+	h += "<div class='miniicon'>" ;
+	if ( typeof icons[project] != 'undefined' ) h += "<img style='height:14px' src='" + icons[project] + "' title='" + escattr(ucFirst(project.replace(/wiki$/,''))) + "' />" ;
+	h += "</div>" ; // Miniicon
+
+	h += "<div style='display:table-cell'>" ;
+	h += "<div>" ;
+	h += "<a href='https://" + server + "/wiki/" + encodeURIComponent(p.title) + "'" ;
+	if ( project == 'wikidatawiki' ) {
+		h += " class='wikidata' q='" + p.title + "'" ;
+		load_q_labels.push ( p.title ) ;
+	}
+	h += ">" + p.title + "</a>" ;
+	h += "</div>" ;
+	
+	if ( typeof p.snippet != 'undefined' && project != 'wikidatawiki' ) {
+		h += "<div class='searchresult'>" ;
+		h += results[key].snippet ;
+		h += "</div>" ;
+	}
+
+	h += "</div>" ;
+	h += "</div>" ; // Row 1
+
+	h += "</div>" ; // Container
+	
+	p.hadthat = true ;
+	return h ;
+}
+
+function getCommonsFiles () {
+	var out = { files:[] , galleries:[] , categories:[] } ;
+	$.each ( results , function ( key , v ) {
+		if ( v.hadthat ) return ;
+		if ( v.site != 'commonswiki' ) return ;
+		if ( v.ns == 0 ) out.galleries.push ( key ) ;
+		if ( v.ns == 6 ) out.files.push ( key ) ;
+		if ( v.ns == 14 ) out.categories.push ( key ) ;
+	} ) ;
+	if ( out.files.length + out.galleries.length + out.categories.length == 0 ) return '' ; // Nothing to do
+	
+	var h = "<div class='col-md-12'>" ;
+	h += "<div class='item'>" ;
+	
+	h += "<div>" ;
+	$.each ( out.files , function ( dummy , key ) {
+		var p = results[key] ;
+		var file = p.title.replace ( /^.+?:/ , '' ) ;
+		h += "<div class='thumbnail'>" ;
+		h += "<a href='https://commons.wikimedia.org/wiki/File:"+escattr(encodeURIComponent(file))+"'>" ;
+		h += "<img border=0 src='' alt='" + escattr(file) + "' title='" + escattr(file) + "' />" ;
+		h += "</a>" ;
+		h += "</div>" ;
+		p.hadthat = true ;
+	} ) ;
+	h += "</div>" ;
+	
+	h += "<div>" ;
+	$.each ( out.galleries , function ( dummy , key ) { h += getIconLink(key) } ) ;
+	$.each ( out.categories , function ( dummy , key ) { h += getIconLink(key) } ) ;
+	h += "</div>" ;
+	
+	
+	h += "</div>" ;
+	h += "</div>" ;
+	return h ;
+}
+
+function showResults() {
+	var h = "" ;
+
+
+	var qs = [] ;
+	$.each ( q2page , function ( k , v ) {
+		if ( v.length < 2 ) return ;
+		qs.push ( k ) ;
+	} ) ;
+	qs = qs.sort ( function ( a , b ) {
+		return q2page[b].length - q2page[a].length ;
+	} ) ;
+	var h = '' ;
+	var first = 0 ;
+	$.each ( qs , function ( dummy , q ) {
+		
+		var p = q2page[q] ;
+		
+		h += "<div class='col-lg-6 col-md-12'>" ;
+		h += "<div class='item'>" ;
+		
+		h += "<div class='sites'>" ;
+		$.each ( p , function ( dummy2 , key ) {
+			h += getIconLink ( key ) ;
+		} ) ;
+		h += "</div>" ;
+
+		h += "<div class='preview'>" ;
+		h += "<div q='" + q + "' class='q_preview'><i>loading preview...</i></div>" ;
+		h += "</div>" ;
+		
+		h += "</div>" ; // item
+		h += "</div>" ; // col
+	} ) ;
+	
+	var cf = getCommonsFiles() ;
+	h += cf ;
+	
+	$.each ( results , function ( key , p ) {
+		if ( p.hadthat ) return ;
+		h += "<div class='col-lg-6 col-md-12'>" ;
+		h += "<div class='item'>" ;
+		h += getIconLink ( key ) ;
+		h += "<div class='sites'>" ;
+		
+		h += "</div>" ;
+		
+		h += "</div>" ; // item
+		h += "</div>" ; // col
+	} ) ;
+	
+	$('#main').html ( h ) ;
+	
+	// Wikidata previews
+	$('div.q_preview').each ( function () {
+		var o = $(this) ;
+		var q = o.attr('q') ;
+		$.get ( '/autodesc/?q='+q+'&lang='+lang+'&mode=long&links=wikipedia&redlinks=&format=json&media=yes&thumb=128' , function ( d ) {
+			var h = d.result ;
+			if ( typeof d.media != 'undefined' ) {
+				if ( typeof d.media.image != 'undefined' ) {
+					h = "<a href='https://commons.wikimedia.org/wiki/File:"+escattr(encodeURIComponent(d.media.image[0]))+"'><img border=0 style='float:left;margin-right:5px;' src='" + d.thumbnails[d.media.image[0]].thumburl + "' /></a>" + h ;
+				}
+				if ( typeof d.media.osm != 'undefined' ) h = "<img style='float:right;margin-left:5px;' src='" + d.thumbnails[d.media.osm[0]].thumburl + "' />" + h ;
+			}
+			h += "<br style='clear:both' />" ;
+			o.html ( h ) ;
+		} , 'json' ) ;
+	} ) ;
+	
+	// Commons files
+	$('div.thumbnail img').each ( function () {
+		var o = $(this) ;
+		var file = o.attr('alt') ;
+		$.getJSON ( 'https://commons.wikimedia.org/w/api.php?callback=?' , {
+			action:'query',
+			titles:'File:'+file,
+			prop:'imageinfo',
+			iiurlwidth:120,
+			iiurlheight:120,
+			iiprop:'url',
+			format:'json'
+		} , function ( d ) {
+			$.each ( d.query.pages , function ( k , v ) {
+				o.attr ( { src:v.imageinfo[0].thumburl } ) ;
+			} ) ;
+		} ) ;
+	} ) ;
+	
+	// Wikidata labels
+	while ( load_q_labels.length > 0 ) {
+		var tmp = [] ;
+		while ( load_q_labels.length > 0 && tmp.length < 50 ) {
+			tmp.push ( load_q_labels.shift() ) ;
+		}
+		console.log('here2');
+		$.getJSON ( 'https://www.wikidata.org/w/api.php?callback=?' , {
+			action:'wbgetentities',
+			ids:tmp.join('|'),
+			languages:lang,
+			props:'labels',
+			format:'json'
+		} , function ( d ) {
+			$.each ( d.entities , function ( q , v ) {
+				if ( typeof v.labels == 'undefined' ) return ;
+				if ( typeof v.labels[lang] == 'undefined' ) return ;
+				var label = v.labels[lang].value ;
+				$('a.wikidata[q="'+q+'"]').text ( label ) ;
+			} ) ;
+		} ) ;
+	}
+}
+
+function fin () {
+	count-- ;
+	if ( count > 0 ) {
+		var h = count + ' searches running' ;
+		$('#status').html(h) ;
+		return ;
+	}
+	
+	$('#status').html("DONE!") ;
+	
+	var sites = {} ;
+	q2page = {} ;
+	$.each ( results , function ( k , v ) {
+		if ( typeof sites[v.site] == 'undefined' ) sites[v.site] = [] ;
+		sites[v.site].push ( v ) ;
+	} ) ;
+	running = 0 ;
+	$.each ( sites , function ( site , pages ) {
+		if ( site == 'wikidatawiki' ) {
+			$.each ( pages , function ( k , v ) {
+				var key = site+':'+v.title ;
+				var q = v.title ;
+				if ( typeof q2page[q] == 'undefined' ) q2page[q] = [] ;
+				q2page[q].push ( key ) ;
+				v.q = q ;
+			} ) ;
+			return ;
+		}
+		while ( pages.length > 0 ) {
+			var tmp = [] ;
+			while ( tmp.length < 50 && tmp.join('|').length < 900 && pages.length > 0 ) tmp.push ( (pages.shift()).title ) ;
+			running++ ;
+			$.getJSON ( 'https://www.wikidata.org/w/api.php?callback=?' , {
+				action:'wbgetentities',
+				sites:site,
+				sitefilter:site,
+				titles:tmp.join('|'),
+				format:'json'
+			} , function ( d ) {
+				$.each ( (d.entities||{}) , function ( q , v ) {
+					if ( typeof v.sitelinks == 'undefined' ) return ;
+					if ( typeof v.sitelinks[site] == 'undefined' ) return ;
+					if ( typeof q2page[q] == 'undefined' ) q2page[q] = [] ;
+					var key = site+':'+v.sitelinks[site].title ;
+					if ( typeof results[key] == 'undefined' ) {
+						console.log ( "Bad key: " + key ) ;
+						return ;
+					}
+					results[key].q = q ;
+					q2page[q].push ( key ) ;
+				} ) ;
+				running-- ;
+				var h = count + ' wikidata linkups running' ;
+				$('#status').html(h) ;
+				if ( running > 0 ) return ;
+				$('#status').html("DONE!") ;
+				showResults() ;
+			} ) ;
+		}
+	} ) ;
+	var h = count + ' wikidata linkups running' ;
+	$('#status').html(h) ;
+}
+
+function doSearch ( l , p , ns , num ) {
+	if ( typeof num == 'undefined' ) num = 10 ;
+	var site = p == 'wikipedia' ? 'wiki' : p ;
+	site = l + site ;
+	if ( p == 'wikidata' ) site = 'wikidatawiki' ;
+	if ( l == 'commons' ) site = 'commonswiki' ;
+	if ( l == 'species' ) site = 'specieswiki' ;
+	var url = 'https://'+l+'.'+p+'.org/w/api.php?callback=?' ;
+	$.getJSON ( url , {
+		action:'query',
+		list:'search',
+		srsearch:query,
+		srnamespace:ns,
+		srlimit:num,
+		format:'json'
+	} , function(d){processWikimedia(d,site)}
+	) .fail ( function () { console.log("FAIL: "+site); fin() } ) ;
+	count++ ;
+}
+
+function processWikimedia ( d , site ) {
+	$.each ( ((d.query||{}).search||[]) , function ( k , v ) { v.site = site ; results[site+':'+v.title] = v ; } ) ;
+	fin() ;
+}
+
+
+
+$(document).ready ( function () {
+	var browser_lang = navigator.language || navigator.userLanguage || '' ;
+	browser_lang = browser_lang.replace ( /-.+$/ , '' ) ;
+	if ( browser_lang != '' ) $('#language').val ( browser_lang ) ;
+	$('#query').focus() ;
+	$('#main-form').submit ( function () {
+		query = $('#query').val() ;
+		lang = $('#language').val() ;
+		results = {} ;
+		load_q_labels = [] ;
+		
+		var h = "<div id='status'></div>" ;
+		$('#main').html ( h ) ;
+		
+		count = 1 ; // Dummy
+		doSearch ( 'www' , 'wikidata' , 0 , 20 ) ;
+		doSearch ( 'commons' , 'wikimedia' , 6 , 20 ) ; // Files
+		doSearch ( 'commons' , 'wikimedia' , 14 ) ; // Category
+		doSearch ( 'commons' , 'wikimedia' , 100 ) ; // Creator
+		doSearch ( 'commons' , 'wikimedia' , 0 ) ; // Gallery
+		doSearch ( lang , 'wikipedia' , 0 ) ; // Articles
+		doSearch ( lang , 'wikipedia' , 100 ) ; // Portal
+		doSearch ( lang , 'wikiquote' , 0 ) ;
+		doSearch ( lang , 'wiktionary' , 0 ) ;
+		doSearch ( lang , 'wikibooks' , 0 ) ;
+		doSearch ( lang , 'wikisource' , 0 ) ;
+		doSearch ( lang , 'wikinews' , 0 ) ;
+		doSearch ( lang , 'wikiversity' , 0 ) ;
+		doSearch ( lang , 'wikivoyage' , 0 ) ;
+		doSearch ( 'species' , 'wikimedia' , 0 ) ;
+		
+		fin(); // Show status, remove dummy
+		
+		return false ;
+	} ) ;
+} ) ;
+
+</script>
+</head>
+
+<body>
+
+<!--
+<div id="menubar" class="navbar navbar-static-top"><div class="navbar-inner">
+	<div class="container">
+	
+		<a class="btn btn-navbar navbar-btn" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		</a>
+		
+		<a class="brand" href="#">Knowledge Engine</a>
+		
+		
+		<ul id="toolbar-right" class="nav pull-right">
+			<li><a style="margin:0px;padding:0px;margin-top:4px" href="//tools.wmflabs.org/"><img src="//wikitech.wikimedia.org/w/images/c/cf/Labslogo_thumb.png" title="Powered by Wikimedia Labs" border="0" width="32px"></a></li>
+		</ul>
+		
+	</div>
+</div>
+</div>
+-->
+
+<div class="container">
+	<div class="row">
+	<div class="well" id='intro'>
+	A cheap hack for a <a href='https://meta.wikimedia.org/wiki/User_talk:LilaTretikov_%28WMF%29#Knowledge_Engine_grant' target='_blank'>Knowledge Engine</a>, to discover information cross-project.
+	</div>
+	</div>
+	
+	<div class="row" id='form'>
+	<div class="col-md-12">
+	<form class='form-inline inline-form' id='main-form'>
+	<div>Query <input type='text' id='query' value='' /> <input type='submit' value='Find' class='btn btn-primary' /> <small>Demo: <a href='#' onclick='$("#query").val("ligo");$("#main-form").submit();return false'>LIGO</a></small></div>
+	<div>Language <input type='text' id='language' value='en' /> (specifying a language is necessary, as proper Wikimedia cross-language search does not exist yet)</div>
+	</form>
+	</div>
+	</div>
+	
+	<div class="row" id='main'>
+	</div>
+</div>
+
+
+</body>
+
+</html>
