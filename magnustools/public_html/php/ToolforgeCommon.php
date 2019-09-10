@@ -157,7 +157,7 @@ final class ToolforgeCommon {
 	private function getDBpassword () /*:string*/ {
 		if ( isset ( $this->tool_user_name ) and $this->tool_user_name != '' ) $user = $this->tool_user_name ;
 		else $user = str_replace ( 'tools.' , '' , get_current_user() ) ;
-		$passwordfile = '/matrix/home/josh.christ/public_html/magnustools/users/' . $user . '/replica.my.cnf' ;
+		$passwordfile = '/matrix/dev/public_html/enslaved-quickstatements/magnustools/users/' . $user . '/replica.my.cnf' ;
 		//if ( $user == 'magnus' ) $passwordfile = '/home/' . $user . '/replica.my.cnf' ; // Command-line usage
 		$config = parse_ini_file( $passwordfile );
 		if ( isset( $config['user'] ) ) {

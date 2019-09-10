@@ -2,6 +2,7 @@
 
 error_reporting(E_ERROR|E_CORE_ERROR|E_ALL|E_COMPILE_ERROR); // 
 ini_set('display_errors', 'On');
+ini_set('max_execution_time', 0);
 
 if ( !isset($_REQUEST['openpage']) ) {
 	header('Content-type: application/json; charset=UTF-8');
@@ -29,7 +30,7 @@ if ( isset ( $_REQUEST['oauth_verifier'] ) ) {
 
 if ( $action == 'import' ) {
 
-	ini_set('memory_limit','1500M');
+	ini_set('memory_limit','3000M');
 
 	$format = get_request ( 'format' , 'v1' ) ;
 	$username = get_request ( 'username' , '' ) ;

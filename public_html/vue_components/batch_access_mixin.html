@@ -45,6 +45,7 @@ var batch_access_mixin = {
 					batch:id
 				} , function ( d ) {
 					$('#working').hide() ;
+					console.log ("get batch info here", JSON.parse(JSON.stringify(d.data[id]['batch']['message'])));
 //					console.log ( JSON.parse(JSON.stringify(d.data[id])) ) ;
 					let old_data = me.meta.batch.data ;
 					me.meta = d.data[id] ;
@@ -54,6 +55,10 @@ var batch_access_mixin = {
 		    		me.batch_exists = true ;
 		    		if ( me.meta.batch.status != 'DONE' ) me.startStatusUpdate() ;
 					resolve() ;
+					setTimeout ( function () {
+						console.log("jquery", $(".command_status"));
+					} , 1000 ) ;
+					
 				} , 'json' ) ;
 			} ) ;
 		} ,
@@ -71,5 +76,12 @@ var batch_access_mixin = {
 		}
 	}
 }
+
+$(document).ready(function(){
+	$(document).on("click", ".command_status", function(){
+		console.log($(this));
+		alert($(this).attr('Title'));
+	});
+});
 
 </script>
