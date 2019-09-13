@@ -84,7 +84,7 @@ div.create_batch_box > div {
 							<button v-if='(meta.commands.ERROR||0)>0 && meta.batch.status=="DONE"' class='btn btn-outline-success' @click='tryResetErrors'>Try to reset errors</button>
 						</span>
 						<span v-if='user.canSubmitBatch() && !run.is_running_in_browser && (meta.commands.INIT||0)>0'>
-							<button v-if='' class='btn btn-outline-primary' tt='run_background' @click='runBatchInBackground'></button>
+							<button v-if='' class='btn btn-outline-primary testing-back' tt='run_background' @click='runBatchInBackground'></button>
 						</span>
 					</div>
 				</div>
@@ -478,6 +478,16 @@ let BatchPage = Vue.extend ( {
         } ,
 
     	runBatchInBackground : function () {
+			//var win=window;
+			
+			//win.focus();
+			//var a = document.createElement("a");
+			//a.href = "http://www.google.com/";
+			//var evt = document.createEvent("MouseEvents");
+			//evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0,
+			//							true, false, false, false, 0, null);
+			//a.dispatchEvent(evt);
+			//chrome.tabs.create({ url: "http://www.google.com/", selected: false }); 
     		var me = this ;
     		if ( !me.startRun(false) ) return ;
     		if ( me.meta.batch.id > 0 ) {
@@ -495,10 +505,12 @@ let BatchPage = Vue.extend ( {
 				return ;
     		}
 
-    		if ( me.meta.batch.name == '' ) {
-				var res = prompt ( 'Enter a name for this batch (optional)' , '' ) ;
-				if ( res != '' ) me.meta.batch.name = res ;
-			}
+			//var handle =window.open('../bot.php?single_batch=1', '_blank', "location=yes,height=570,width=520,scrollbars=yes,status=yes");
+			//handle.blur();
+    		//if ( me.meta.batch.name == '' ) {
+			//	var res = prompt ( 'Enter a name for this batch (optional)' , '' ) ;
+			//	if ( res != '' ) me.meta.batch.name = res ;
+			//}
 
     		let params = {
 				action:'run_batch',
@@ -516,7 +528,13 @@ let BatchPage = Vue.extend ( {
 				}
 				me.$router.push ( '/batch/'+d.batch_id );
 			} , 'json' ) ;
-
+			
+			var handle =window.open('../bot.php?single_batch=1', '_blank', "location=yes,height=570,width=520,scrollbars=yes,status=yes");
+			handle.blur();
+    		if ( me.meta.batch.name == '' ) {
+				var res = prompt ( 'Enter a name for this batch (optional)' , '' ) ;
+			}
+			
     	} ,
 
     },

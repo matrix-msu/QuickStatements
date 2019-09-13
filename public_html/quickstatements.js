@@ -141,6 +141,7 @@ var QuickStatements = {
 	} ,
 	
 	updateBatchStatus : function () {
+		console.log('update batch stat');
 		var me = this ;
 		if ( typeof me.run_state.batch_id == 'undefined' ) return ;
 		$('#single_batch_busy').show() ;
@@ -148,6 +149,7 @@ var QuickStatements = {
 			action:'get_batch_info',
 			batch:me.run_state.batch_id
 		} , function ( d ) {
+			console.log('update batch',d);
 			var batch_id = me.run_state.batch_id ;
 			$('#single_batch_busy').hide() ;
 			var d2 = d.data[batch_id] ;
@@ -391,7 +393,7 @@ var QuickStatements = {
 	runSingleCommand : function ( cmdnum ) {
 		var me = this ;
 		var cmd = me.data.commands[cmdnum];
-		console.log('run single command');
+		console.log('run single command edited yay');
 		console.log(cmd);
 		me.setCommandStatus ( cmdnum , 'running' ) ;
 		me.updateRunStatus() ;

@@ -4,10 +4,10 @@
 	"logfile" : "/matrix/dev/public_html/enslaved-quickstatements/public_html/tool.log" ,
 	"sites" : {
 		"wikidata" : {
-			"oauth" : { "language":"wikidata" , "project":"wikidata" , "ini_file":"/matrix/dev/public_html/enslaved-quickstatements/public_html/oauth.ini" , "mwOAuthUrl":"https://chyron-31.matrix.msu.edu/w/index.php?title=Special:OAuth" , "mwOAuthIW":"mw" } ,
-			"server" : "chyron-31.matrix.msu.edu" ,
-			"api" : "https://chyron-31.matrix.msu.edu/w/api.php" ,
-			"pageBase" : "https://chyron-31.matrix.msu.edu/wiki/Item:" ,
+			"oauth" : { "language":"wikidata" , "project":"wikidata" , "ini_file":"/matrix/dev/public_html/enslaved-quickstatements/public_html/oauth.ini" , "mwOAuthUrl":"https://lod.dev.matrix.msu.edu/w/index.php?title=Special:OAuth" , "mwOAuthIW":"mw" } ,
+			"server" : "lod.dev.matrix.msu.edu" ,
+			"api" : "https://lod.dev.matrix.msu.edu/w/api.php" ,
+			"pageBase" : "https://lod.dev.matrix.msu.edu/wiki/Item:" ,
 			"toolBase" : "http://dev2.matrix.msu.edu/enslaved-quickstatements/public_html" ,
 			"types" : {
 				"P" : { "type":"property" , "ns":120 , "ns_prefix":"Property:" } ,

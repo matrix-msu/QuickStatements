@@ -27,7 +27,7 @@ class MW_OAuth {
 			$this->tool = $t ;
 			$this->language = $l ;
 			$this->project = $p ;
-			$this->ini_file = "/matrix/home/josh.christ/public_html/magnustools/$t/oauth.ini" ;
+			$this->ini_file = "/matrix/dev/public_html/enslaved-quickstatements/magnustools/$t/oauth.ini" ;
 			
 			if ( $l == 'wikidata' ) $this->apiUrl = 'https://www.wikidata.org/w/api.php' ;
 			elseif ( $l == 'commons' ) $this->apiUrl = 'https://commons.wikimedia.org/w/api.php' ;
@@ -1392,7 +1392,7 @@ class MW_OAuth {
 		$new_file_name = ucfirst ( str_replace ( ' ' , '_' , $new_file_name ) ) ;
 
 		// Download file
-		$basedir = '/matrix/home/josh.christ/public_html/magnustools/tmp' ;
+		$basedir = '/matrix/dev/public_html/enslaved-quickstatements/magnustools/tmp' ;
 		$tmpfile = tempnam ( $basedir , 'doUploadFromURL' ) ;
 		copy($url, $tmpfile) ;
 

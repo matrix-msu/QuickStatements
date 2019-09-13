@@ -16,7 +16,7 @@ close FILE ;
 
 print "Processing " . scalar(@tools) . " tools...\n" ;
 foreach my $tool ( @tools ) {
-	my $dir = "/matrix/home/josh.christ/public_html/$tool" ;
+	my $dir = "/matrix/dev/public_html/$tool" ;
 	unless ( -d $dir ) {
 		print "* ERROR : $tool has no dir $dir\n" ;
 		next ;
@@ -27,11 +27,11 @@ foreach my $tool ( @tools ) {
 	}
 	my $gi = "$dir/.gitignore" ;
 	unless ( -e $gi ) {
-		`cp /matrix/home/josh.christ/public_html/magnustools/dummy_gitignore $gi` ;
+		`cp /matrix/dev/public_html/enslaved-quickstatements/magnustools/dummy_gitignore $gi` ;
 	}
 	my $license = "$dir/LICENSE" ;
 	unless ( -e $license ) {
-		`cp /matrix/home/josh.christ/public_html/magnustools/LICENSE $license ; cd $dir ; git add LICENSE` ;
+		`cp /matrix/dev/public_html/enslaved-quickstatements/magnustools/LICENSE $license ; cd $dir ; git add LICENSE` ;
 	}
 	
 	my $skip = 0 ;
