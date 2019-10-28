@@ -132,7 +132,7 @@ if ( $action == 'import' ) {
 	$offset = get_request ( 'offset' , '0' ) * 1 ;
 	
 	$db = $qs->getDB() ;
-	$sql = "SELECT DISTINCT batch.id AS id FROM batch" ;
+	$sql = "SELECT DISTINCT batch.id, ts_last_change AS id FROM batch" ;
 	if ( $user != '' ) $sql .= ",user" ;
 
 	$conditions = array() ;
