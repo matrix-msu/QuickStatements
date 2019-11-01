@@ -47,7 +47,7 @@ input[type=text]:focus {
 	box-shadow:none;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
 	body {
 		background: black;
 		color: #ddd;
@@ -76,4 +76,4 @@ input[type=text]:focus {
 	img:hover {
 		opacity: 1;
 	}
-}
+} */
