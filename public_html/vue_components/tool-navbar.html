@@ -24,10 +24,6 @@
 
 	    <slot name='right'></slot>
 
-	    <a style="margin:0px;padding:0px;margin-top:4px;margin-left:10px;" href="/" target='_blank'>
-	    	<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Toolforge_logo.svg/32px-Toolforge_logo.svg.png" tt_title="wmf_powered" border="0" width="32px">
-	    </a>
-
 	  </div>
 	</nav>
 </template>
@@ -39,8 +35,8 @@ Vue.component ( 'tool-navbar' , {
 	template : '#tool-navbar-template' ,
 	mounted : function () {
 		if ( typeof tt != 'undefined' ) {
-			tt.updateInterface($(this.$el)) ;
-			tt.addILdropdown ( '#tooltranslate_wrapper' ) ;
+			// tt.updateInterface($(this.$el)) ;
+			// tt.addILdropdown ( '#tooltranslate_wrapper' ) ;
 		}
 	}
 } ) ;
