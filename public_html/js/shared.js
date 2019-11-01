@@ -27,12 +27,30 @@ let vue_components = {
 		let id = this.getComponentID ( component ) ;
 		if ( $('#'+id).length > 0 ) return Promise.resolve() ; // Already loaded/loading
 		let component_url = this.getComponentURL(component) ;
+		
 		return fetch ( component_url )
 			.then ( response => response.text() )
 	} ,
 	injectComponent ( component, html ) {
 		if ( !html ) return;
 		let id = this.getComponentID ( component ) ;
-		$('body').append($('<div>').attr({id: id}).css({display: 'none'}).html(html));
+		// $(document).ready(function() {
+		// 	$('body').append($('<div>').attr({id: id}).css({display: 'none'}).html(html));
+		// });
+		
+		// $('body').append($('<div>').attr({id: id}).css({display: 'none'}).html(html));
+		
+		
+		let com = document.createElement('div');
+		com.setAttribute('id', id);
+		com.style.display = 'none';
+		com.innerHTML = html;
+		
+		var arr = com.getElementsByTagName('script');
+		for (var n = 0; n < arr.length; n++) {
+			jQuery.globalEval(arr[n].innerHTML);
+		}
+		
+		document.body.appendChild(com);
 	}
 }
