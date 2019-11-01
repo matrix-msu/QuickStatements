@@ -1,6 +1,6 @@
 /*
 	Always include this file as https://tools-static.wmflabs.org/tooltranslate/tt.js
-	
+
 	intitial_params keys are:
 	- tool The name of the tool; the key in the online translation. Mandatory.
 	- language Language to load; default is "interface_language" URL parameter, browser/system language, or 'en' as fallback. Optional.
@@ -14,7 +14,7 @@
 */
 function ToolTranslation ( intitial_params ) {
 
-	
+
 	this.createCookie = function (name, value, days) {
 		var expires;
 		if (days) {
@@ -56,7 +56,7 @@ function ToolTranslation ( intitial_params ) {
 		safari_win:'Alt',
 		safari_mac:'Ctrl+Alt'
 	} ;
-	
+
 	this.rtl = ["ar", "arc", "arz", "ks", "lrc", "mzn", "azb", "nqo", "pnb", "ps", "sd", "ug", "ur", "yi", "ckb", "dv", "fa", "glk", "he"];
 	this.loaded = false ;
 	this.toolname = intitial_params.tool ;
@@ -64,19 +64,19 @@ function ToolTranslation ( intitial_params ) {
 		console.log ( "ToolTranslation requires parameter 'tool' with the toolname key" ) ;
 		return ;
 	}
-	
+
 	if ( typeof intitial_params.highlight_missing != 'undefined' ) this.highlight_missing = intitial_params.highlight_missing ;
-	
+
 	this.toolinfo = {} ;
-	this.tool_path = 'https://tools-static.wmflabs.org/tooltranslate/' ;
-	
+	this.tool_path = 'json/' ;
+
 	this.force_fresh = intitial_params.force_fresh ? true : false ;
 	this.force_fresh = true ; // Caching issues on Labs :-(
-	
+
 	if ( typeof intitial_params.fallback != 'undefined' ) this.fallback = intitial_params.fallback ;
 
 	this.onLanguageChange = intitial_params.onLanguageChange ;
-	
+
 	var language_from_cookie = this.getCookie('interface_language') ;
 	var m = window.location.href.match ( /[\#\&\?]interface_language=([a-z_-]+)/ ) ;
 	if ( m != null ) this.language = m[1] ;
@@ -84,22 +84,22 @@ function ToolTranslation ( intitial_params ) {
 	else this.language = window.navigator.userLanguage || window.navigator.language || 'en' ;
 	this.language = this.language.replace ( /-.+$/ , '' ) ; // Main language only
 	this.translation_cache = {} ;
-	
+
 	this.onUpdateInterface = function () {} ; // Dummy
 	if ( typeof intitial_params.onUpdateInterface != 'undefined' ) this.onUpdateInterface = intitial_params.onUpdateInterface ;
-	
+
 	var me = this ;
 	$.each ( ['highlight_missing','no_interface_update','debug'] , function ( k , v ) {
 		me[v] = false ;
 		if ( typeof intitial_params[v] == 'undefined' ) return ;
 		me[v] = intitial_params[v] ;
 	} ) ;
-	
+
 
 	// METHODS
 
 
-	
+
 	this.getLanguages = function () {
 		var me = this ;
 		var ret = [] ;
@@ -108,7 +108,7 @@ function ToolTranslation ( intitial_params ) {
 		} ) ;
 		return ret ;
 	}
-	
+
 	this.log = function ( s ) {
 		if ( !this.debug ) return ;
 		console.log ( s ) ;
@@ -119,13 +119,13 @@ function ToolTranslation ( intitial_params ) {
 		if ( typeof me.translation_cache[lang] == 'undefined' ) me.translation_cache[lang] = {} ;
 		me.translation_cache[lang][key] = text ;
 	}
-	
+
 	this.hasLanguage = function ( lang ) {
 		var me = this ;
 		if ( typeof me.translation_cache[lang] == 'undefined' ) return false ;
 		return true ;
 	}
-	
+
 	this.t = function ( key , options ) {
 		var me = this ;
 		if ( typeof options == 'undefined' ) options = {} ;
@@ -151,7 +151,7 @@ function ToolTranslation ( intitial_params ) {
 		}
 		if ( me.highlight_missing ) return "<span style='font-size:7pt;color:red'>" + key + "</span>" ;
 	}
-	
+
 	this.getJoinedKeys = function () {
 		var me = this ;
 		var tmp = {} ;
@@ -167,13 +167,13 @@ function ToolTranslation ( intitial_params ) {
 		ret.sort() ;
 		return ret ;
 	}
-	
-	
+
+
 	// TODO improve, suppress all JS injection
 	this.sanitizeHTML = function ( s ) {
 		return s.replace(/<\s*script/i,'') ;
 	}
-	
+
 	this.setLanguage = function ( lang , callback ) {
 		var me = this ;
 		me.language = lang ;
@@ -186,7 +186,7 @@ function ToolTranslation ( intitial_params ) {
 		me.loadToolTranslation ( lang , callback ) ;
 		me.createCookie ( 'interface_language' , lang ) ;
 	}
-	
+
 	this.replace_ttx = function ( o , h ) {
 		for ( var i = 1 ; i < 10 ; i++ ) {
 			var v = o.attr('tt'+i) ;
@@ -195,7 +195,7 @@ function ToolTranslation ( intitial_params ) {
 		}
 		return h ;
 	}
-	
+
 	this.updateInterface = function ( root ) {
 		var me = this ;
 		if ( typeof me.translation_cache[me.language] == 'undefined' ) {
@@ -205,7 +205,7 @@ function ToolTranslation ( intitial_params ) {
 
 		if ( typeof root == 'undefined' ) root = document ;
 		var d = me.translation_cache[me.language] ;
-		
+
 		// HTML elements
 		$(root).find('[tt]').each ( function ( k , v ) {
 			var o = $(v) ;
@@ -275,13 +275,13 @@ function ToolTranslation ( intitial_params ) {
 				o.attr({title:title}) ;
 			} ) ;
 		}
-		
+
 		if ( me.updating_interface ) return ; // Prevent recursion, if onUpdateInterface updates the interface!
 		me.updating_interface = true ;
 		me.onUpdateInterface() ;
 		me.updating_interface = false ;
 	}
-	
+
 	this.loadToolTranslation = function ( languages , callback ) {
 		var me = this ;
 		if ( typeof languages != 'object' ) languages = [ languages ] ; // Enforce array
@@ -291,35 +291,35 @@ function ToolTranslation ( intitial_params ) {
 		$.each ( languages , function ( dummy , lang ) {
 			if ( typeof me.translation_cache[lang] == 'undefined' ) l2.push ( lang ) ;
 		} ) ;
-		
+
 		function and_done () {
 			if ( !me.no_interface_update ) me.updateInterface() ;
 			me.loaded = true ;
 			callback() ;
 		}
-		
+
 		if ( l2.length > 0 ) {
-		
+
 			var running = l2.length ;
 			function fin () {
 				running-- ;
 				if ( running > 0 ) return ;
 				and_done() ;
 			}
-			
+
 			if ( typeof me.toolinfo.languages == 'undefined' ) {
 				running++ ;
-				$.get ( me.tool_path+'data/'+me.toolname+'/toolinfo.json' , function ( d ) {
+				$.get ( me.tool_path+'toolinfo.json' , function ( d ) {
 					me.toolinfo = d ;
 				} , 'json' ) . always ( function () { fin() } ) ;
 			}
-			
+
 			$.each ( l2 , function ( dummy , lang ) {
 				// Sanitize language name
 				lang = lang.replace ( /[^a-z_-]/g , '' ) ;
-				
+
 				// Load language from cache
-				var url = me.tool_path+'data/'+me.toolname+'/'+lang+'.json' ;
+				var url = me.tool_path+lang+'.json' ;
 				if ( me.force_fresh ) {
 					var date = new Date();
 					var n = date.getTime();
@@ -336,15 +336,15 @@ function ToolTranslation ( intitial_params ) {
 					fin() ;
 				} ) ;
 			} ) ;
-			
+
 		} else {
 			and_done() ;
 		}
 	}
-	
+
 	this.addILdropdown = function ( target ) {
 		var me = this ;
-		
+
 		function addDropdown () {
 			if ( typeof me.toolinfo.languages == 'undefined' ) {
 				setTimeout ( function () {
@@ -374,7 +374,7 @@ function ToolTranslation ( intitial_params ) {
 				if ( typeof me.onLanguageChange != 'undefined' ) me.onLanguageChange ( lang ) ;
 			} ) ;
 		}
-		
+
 		if ( typeof me.language_cache == 'undefined' ) {
 			$.get ( me.tool_path+'data/languages.json' , function ( d ) {
 				me.language_cache = d ;
@@ -384,7 +384,7 @@ function ToolTranslation ( intitial_params ) {
 			addDropdown() ;
 		}
 	}
-	
+
 	// CONSTRUCTOR
 	var to_load = [] ;
 	var language_from_cookie = this.getCookie('interface_language') ;
