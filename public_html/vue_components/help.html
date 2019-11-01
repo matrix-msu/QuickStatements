@@ -2,423 +2,106 @@
     .help-wrapper {
         padding: 40px;
     }
+    .item,.prop,.string,.time,.source,.tab {
+    	margin:2px;
+    	padding:1px;
+    }
+    .item {
+    	background-color:#D6F8DE;
+    	border:3px solid #93EEAA;
+    }
+    .prop {
+    	background-color:#DBEBFF;
+    	border:3px solid #99C7FF;
+    }
+    .string {
+    	background-color:#FFDBFB;
+    	border:3px solid #FE98F1;
+    }
+    .time {
+    	background-color:#D7D1F8;
+    	border:3px solid #A095EE;
+    }
+    .source {
+    	background-color:#FFDFDF;
+    	border:3px solid #FF9797;
+    }
+    .location {
+    	background-color:#FFEAB7;
+    	border:3px solid #FFC848;
+    }
+    .tab {
+    	background-color:#FFFFC8;
+    	border:3px solid #FFFF84;
+    }
+    .value {
+    	background-color:#DDD;
+    	border:3px solid #BBB;
+    }
+    .quantity {
+    	background-color:#E1E1A8;
+    	border:3px solid #D1D17A;
+    }
 </style>
 
 <template id="help-template">
     <div class="help-wrapper">
-        <div id="content" class="mw-body" role="main">
-        	<a id="top"></a>
-        	<div id="siteNotice" class="mw-body-content"><div id="centralNotice"></div><!-- CentralNotice --></div>
-        	<div class="mw-indicators mw-body-content">
+        <div style="font-size:12pt" id="howto">
+            <h3>How to use</h3>
+            <p>You can specify the statements to add by typing/pasting one row per statement into the above text area.
+            Different parts of the statement are separated by a <span class="tab">TAB</span> character or by <span class="tab">|</span>.
+            As <span class="tab">TAB</span> is hard to type into a text area, you may want to use a text editor, and paste the statements into the text area later.
+            <br><i>Hint:</i> You can also use a spreadsheet software such as Excel; Copying/pasting the cells should automatically insert <span class="tab">TAB</span>s.
+            </p>
+            <p>Each statement <i>must</i> consist of an <span class="item">item</span>, a <span class="prop">property</span>, and a <span class="value">value</span>.
+            A <span class="value">value</span> can be another <span class="item">item</span>, a <span class="string">string</span>, a <span class="time">time</span>, a <span class="location">location</span>, or a <span class="quantity">quantity</span>,
+            depending on the property type. A basic example:</p>
+            <p style="margin-top:20px;margin-bottom:20px;">
+            <span class="item">Q4115189</span> <span class="tab">TAB</span> <span class="prop">P31</span> <span class="tab">TAB</span> <span class="item">Q1</span>
+            </p>
+            <p>For the (initial) item of a statement, you can use an article name instead, <i>if</i> you fill in a <tt>xxwiki</tt> value in the input box above the text area; the correct item number (if available) will be retrieved automatically.</p>
+            <ul>
+            <li><span class="item">Items</span> are always in the form <tt>Qxx</tt>, <span class="prop">properties</span> in the form <tt>Pxx</tt>.<br>&nbsp;</li>
+            <li><span class="string">Strings</span> <i>have</i> to be <tt>"in double quotes"</tt>.<br>
+            For a monolingual string, prefix it with the language and a colon, e.g. <tt>en:"Some text"</tt><br>&nbsp;</li>
+            <li><span class="time">Time</span> values <i>must</i> have the  <tt>+1967-01-17T00:00:00Z/11</tt>, with the <tt>/11</tt> designating the precision.<br>
+            A precision of 11=day, 10=month, 9=year; default is 9.<br>&nbsp;</li>
+            <li><span class="location">Location</span> in the form of <tt>@LAT/LON</tt>, with LAT and LON as decimal numbers.<br>&nbsp;</li>
+            <li><span class="quantity">Quantity</span> in the form of <tt>amount[lower,upper]Uxx</tt>, with <tt>amount</tt>, <tt>lower</tt> and <tt>upper</tt> being a rational number and <tt>Uxx</tt> being the item number of an unit.<br>
+                <tt>unit</tt> is optional.<br>
+                <tt>lower</tt>, <tt>upper</tt> are optional. <tt>lower</tt> and <tt>upper</tt> must be either both present or not present at all. When present, they are enclosed in square brackets and separated by <tt>,</tt><br>
+                <tt>amount</tt>, <tt>lower</tt> and <tt>upper</tt> must use <tt>.</tt> as decimal separator, must not use any thousands separator and may be prefixed by <tt>+</tt> or <tt>-</tt>.<br>
+                Don't leave any space in the quantity.<br>
+                <tt>10</tt>, <tt>10U11573</tt>, <tt>-10[-12.5,-7.5]</tt>, <tt>0[-5,5]U11573</tt> are all valid quantities.</li>
+            </ul>
+            <p>Each statement "triplet" can be followed by an unlimited number of "qualifiers pairs" of <span class="prop">property</span> <span class="tab">TAB</span> <span class="value">value</span>.</p>
+            <p>Each statement can be followed by an unlimited number of "source pairs" of <span class="source">source property</span> <span class="tab">TAB</span> <span class="value">value</span>.<br>
+            The source property is identical to the "normal" property, except it uses the form <tt>Sxx</tt> instead of <tt>Pxx</tt>.</p>
+            <p><i>Note:</i> Existing statements with an exact match (property <i>and</i> value) will <i>not</i> be added again.</p>
+            <p>A valid example statement would thus be:</p>
+            <p><span class="item">Q4115189</span> <span class="tab">TAB</span> <span class="prop">P31</span> <span class="tab">TAB</span> <span class="item">Q1</span>
+            <span class="tab">TAB</span> <span class="prop">P580</span> <span class="tab">TAB</span> <span class="time">+1840-01-01T00:00:00Z/09</span>
+            <span class="tab">TAB</span> <span class="source">S143</span> <span class="tab">TAB</span> <span class="item">Q48183</span>
+            </p>
+            <p style="font-size:9pt">("Sandbox item" is an "instance of" "universe", qualifier "start date"=1840, sourced as "imported from" "German Wikipedia")</p>
+            <h4>Item creation and labels/alias/description/sitelink</h4>
+            <p>To add a label in a specific language to an item, use "Lxx" instead of the property, with "xx" as the language code.</p>
+            <p>To add an alias in a specific language to an item, use "Axx" instead of the property, with "xx" as the language code.</p>
+            <p>To add a description in a specific language to an item, use "Dxx" instead of the property, with "xx" as the language code.</p>
+            <p>To add a sitelink to a specific page on a site to an item, use "Sxxx" instead of the property, with "xxx" as the site (e.g. <i>enwiki</i>).</p>
+            <p>For example, <span class="prop">Lfr</span> would add a label in French.</p>
+            <p>These values <b>must</b> be <span class="string">strings</span> in double quotes.</p>
+            <p>You can also create new items by inserting a line consisting only of the word "CREATE".<br><i>PLEASE ENSURE YOU DO NOT CREATE DUPLICATE ITEMS!</i></p>
+            <p>To add statements to the newly created item, use the word "LAST" instead of the <span class="item">Q number</span>; the statement will be added to the last created item.</p>
+            <p>An example for creating a new item and setting a label:</p>
+            <p><span class="value">CREATE</span></p>
+            <p><span class="item">LAST</span> <span class="tab">TAB</span> <span class="prop">Lfr</span> <span class="tab">TAB</span> <span class="string">"Le croissant magnifique!"</span></p>
+            <h4>Item merging</h4>
+            <p>You can merge two items. The first item will be merged and (if successful) redirected into the second item.</p>
+            <p><span class="value">MERGE</span> <span class="tab">TAB</span> <span class="item">Qsource</span> <span class="tab">TAB</span> <span class="item">Qdestination</span></p>
         </div>
 
-    	<h1 id="firstHeading" class="firstHeading" lang="en">Help:QuickStatements</h1>
-
-    	<div id="bodyContent" class="mw-body-content">
-
-        <p class="mw-empty-elt">
-        </p>
-        <div class="thumb tright"><div class="thumbinner" style="width:222px;"><a href="https://commons.wikimedia.org/wiki/File:Commons_to_Wikidata_QuickStatements.svg" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Commons_to_Wikidata_QuickStatements.svg/220px-Commons_to_Wikidata_QuickStatements.svg.png" decoding="async" width="220" height="220" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Commons_to_Wikidata_QuickStatements.svg/330px-Commons_to_Wikidata_QuickStatements.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Commons_to_Wikidata_QuickStatements.svg/440px-Commons_to_Wikidata_QuickStatements.svg.png 2x" data-file-width="512" data-file-height="512"></a>  <div class="thumbcaption"><div class="magnify"><a href="/wiki/File:Commons_to_Wikidata_QuickStatements.svg" class="internal" title="Enlarge"></a></div></div></div></div>
-        <p><b>QuickStatements</b> (<b>QS</b>) is a tool that can edit Wikidata items, based on a simple set of text commands. The tool can add and remove statements, labels, descriptions, and aliases; as well as, add statements with optional qualifiers and sources. The command sequence can be typed in the import window or created in a spreadsheet, text editor and pasted in. It can also be created by external code like Lua called from a template and passed as URL. Data edited in <a href="/wiki/Special:MyLanguage/Wikidata:Tools/OpenRefine" title="Special:MyLanguage/Wikidata:Tools/OpenRefine">OpenRefine</a> can also be exported to QuickStatements format.
-        </p>
-        <div id="toc" class="toc"><input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none"><div class="toctitle" lang="en" dir="ltr"><h2>Contents</h2><span class="toctogglespan"><label class="toctogglelabel" for="toctogglecheckbox"></label></span></div>
-        <ul>
-        <li class="toclevel-1 tocsection-1"><a href="#The_tools"><span class="tocnumber">1</span> <span class="toctext">The tools</span></a></li>
-        <li class="toclevel-1 tocsection-2"><a href="#Command_sequence_syntax"><span class="tocnumber">2</span> <span class="toctext">Command sequence syntax</span></a>
-        <ul>
-        <li class="toclevel-2 tocsection-3"><a href="#Add_simple_statement"><span class="tocnumber">2.1</span> <span class="toctext">Add simple statement</span></a></li>
-        <li class="toclevel-2 tocsection-4"><a href="#Add_statement_with_qualifiers"><span class="tocnumber">2.2</span> <span class="toctext">Add statement with qualifiers</span></a></li>
-        <li class="toclevel-2 tocsection-5"><a href="#Add_statement_with_sources"><span class="tocnumber">2.3</span> <span class="toctext">Add statement with sources</span></a></li>
-        <li class="toclevel-2 tocsection-6"><a href="#Adding_labels,_aliases,_descriptions_and_sitelinks"><span class="tocnumber">2.4</span> <span class="toctext">Adding labels, aliases, descriptions and sitelinks</span></a></li>
-        <li class="toclevel-2 tocsection-7"><a href="#Item_creation"><span class="tocnumber">2.5</span> <span class="toctext">Item creation</span></a></li>
-        <li class="toclevel-2 tocsection-8"><a href="#Item_merging"><span class="tocnumber">2.6</span> <span class="toctext">Item merging</span></a></li>
-        <li class="toclevel-2 tocsection-9"><a href="#Removing_statements"><span class="tocnumber">2.7</span> <span class="toctext">Removing statements</span></a></li>
-        <li class="toclevel-2 tocsection-10"><a href="#Comments"><span class="tocnumber">2.8</span> <span class="toctext">Comments</span></a></li>
-        </ul>
-        </li>
-        <li class="toclevel-1 tocsection-11"><a href="#CSV_file_syntax"><span class="tocnumber">3</span> <span class="toctext">CSV file syntax</span></a></li>
-        <li class="toclevel-1 tocsection-12"><a href="#Running_QuickStatements"><span class="tocnumber">4</span> <span class="toctext">Running QuickStatements</span></a>
-        <ul>
-        <li class="toclevel-2 tocsection-13"><a href="#Using_QuickStatements_version_2"><span class="tocnumber">4.1</span> <span class="toctext">Using QuickStatements version 2</span></a></li>
-        <li class="toclevel-2 tocsection-14"><a href="#Using_QuickStatements_version_1"><span class="tocnumber">4.2</span> <span class="toctext">Using QuickStatements version 1</span></a></li>
-        <li class="toclevel-2 tocsection-15"><a href="#Using_QuickStatements_version_2_in_batch_mode"><span class="tocnumber">4.3</span> <span class="toctext">Using QuickStatements version 2 in batch mode</span></a>
-        <ul>
-        <li class="toclevel-3 tocsection-16"><a href="#When_to_use_batch_mode?"><span class="tocnumber">4.3.1</span> <span class="toctext">When to use batch mode?</span></a></li>
-        <li class="toclevel-3 tocsection-17"><a href="#Using_batch_mode"><span class="tocnumber">4.3.2</span> <span class="toctext">Using batch mode</span></a></li>
-        </ul>
-        </li>
-        <li class="toclevel-2 tocsection-18"><a href="#Running_QuickStatements_through_URL"><span class="tocnumber">4.4</span> <span class="toctext">Running QuickStatements through URL</span></a></li>
-        </ul>
-        </li>
-        <li class="toclevel-1 tocsection-19"><a href="#Limitations"><span class="tocnumber">5</span> <span class="toctext">Limitations</span></a></li>
-        <li class="toclevel-1 tocsection-20"><a href="#FAQ"><span class="tocnumber">6</span> <span class="toctext">FAQ</span></a></li>
-        <li class="toclevel-1 tocsection-21"><a href="#Best_practices"><span class="tocnumber">7</span> <span class="toctext">Best practices</span></a></li>
-        <li class="toclevel-1 tocsection-22"><a href="#See_also"><span class="tocnumber">8</span> <span class="toctext">See also</span></a></li>
-        </ul>
-        </div>
-
-        <h2><span class="mw-headline" id="The_tools">The tools</span></h2>
-        <p>There are several QuickStatements versions available:
-        </p>
-        <ul><li><b><a href="https://tools.wmflabs.org/quickstatements" class="extiw" title="toollabs:quickstatements">QuickStatements version 2</a></b> (<b>V2</b>) <b>rewrite</b> (or <b>new interface</b>)</li>
-        <li><b><a href="https://tools.wmflabs.org/quickstatements/index_old.html" class="extiw" title="toollabs:quickstatements/index old.html">QuickStatements version 2</a></b> (<b>V2</b>) <b>original</b> (or <b>old interface</b>)</li>
-        <li><b><a href="https://tools.wmflabs.org/wikidata-todo/quick_statements.php" class="extiw" title="toollabs:wikidata-todo/quick statements.php">QuickStatements version 1</a></b> (<b>V1</b>) (no longer maintained)</li></ul>
-        <h2><span class="mw-headline" id="Command_sequence_syntax">Command sequence syntax</span></h2>
-        <h3><span class="mw-headline" id="Add_simple_statement">Add simple statement</span></h3>
-        <p>You can specify the statements to add by typing/pasting one row per statement into the tool's text area. Different parts of the statement are separated by a <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> character, or in QuickStatements version 2 may also by "|". Each command is on a new line, or in QuickStatements version 2 may also be separated by "||".
-        Hint: You can also use a spreadsheet software such as <a href="https://en.wikipedia.org/wiki/Excel" class="extiw" title="w:Excel">Excel</a> or <a href="https://en.wikipedia.org/wiki/LibreOffice_Calc" class="extiw" title="w:LibreOffice Calc">LibreOffice Calc</a>; copying/pasting the cells should automatically insert <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span>s. Also text editors like <a href="https://en.wikipedia.org/wiki/Notepad%2B%2B" class="extiw" title="w:Notepad++">Notepad++</a> allow replacement of any symbol by <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> character.
-        </p><p>Each statement <i><span style="font-variant: small-caps">must</span></i> consist of an <span style="background-color:#DDD;color:black;border:3px solid #BBB;">entity</span>, a <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">property</span>, and a <span style="background-color:#DDD;color:black;border:3px solid #BBB;">value</span>.
-        An <span style="background-color:#DDD;color:black;border:3px solid #BBB;">entity</span> can be an <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">item</span>, a <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">property</span>, a <span style="background-color:#DBFFF9;color:black;border:3px solid #7FFFE9;">lexeme</span>, a <span style="background-color:#DBFFFF;color:black;border:3px solid #7FFFFF;">form</span>, or a <span style="background-color:#DBF9FF;color:black;border:3px solid #7FE9FF;">sense</span>.
-        A <span style="background-color:#DDD;color:black;border:3px solid #BBB;">value</span> can be another <span style="background-color:#DDD;color:black;border:3px solid #BBB;">entity</span>, a <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">string</span>, a <span style="background-color:#D7D1F8;color:black;border:3px solid #A095EE;">time</span>, a <span style="background-color:#FFEAB7;color:black;border:3px solid #FFC848;">location</span>, or a <span style="background-color:#E1E1A8;color:black;border:3px solid #D1D17A;">quantity</span>, depending on the property type, or one of the special values <tt>somevalue</tt> or <tt>novalue</tt> (see <a href="/wiki/Help:Statements#Unknown_or_no_values" title="Help:Statements">Help:Statements#Unknown or no values</a>).
-        </p><p>Formatting of each part:
-        </p>
-        <ul><li><span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;"><a href="/wiki/Special:MyLanguage/Help:Data_type#Item" title="Special:MyLanguage/Help:Data type">Items</a></span> are always in the form Qxx. <small>In QuickStatements version 1 one could use an article name instead of the q-code, if one filled in a xxwiki value in the input box above the text area; the correct item number (if available) was retrieved automatically.</small>
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q4115189</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P31</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q1</span></dd>
-        <dd>Meaning: add to <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q4115189" title="Q4115189">Wikidata Sandbo <small>(Q4115189)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P31" title="Property:P31">instance of <small>(P31)</small></a></span> <span style="padding:0 .2em"><a href="/wiki/Q1" title="Q1">Universe <small>(Q1)</small></a></span></span></dd></dl></li>
-        <li><span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;"><a href="/wiki/Special:MyLanguage/Help:Data_type#Property" title="Special:MyLanguage/Help:Data type">Properties</a></span> in the form Pxx.</li>
-        <li><span style="background-color:#DBFFF9;color:black;border:3px solid #7FFFE9;"><a href="/wiki/Special:MyLanguage/Help:Data_type#Lexemes" title="Special:MyLanguage/Help:Data type">Lexemes</a></span> in the form Lxxx.</li>
-        <li><span style="background-color:#DBFFFF;color:black;border:3px solid #7FFFFF;"><a href="/wiki/Special:MyLanguage/Help:Data_type#Forms" title="Special:MyLanguage/Help:Data type">Forms</a></span> in the form Lxxx-Fyy.</li>
-        <li><span style="background-color:#DBF9FF;color:black;border:3px solid #7FE9FF;"><a href="/wiki/Special:MyLanguage/Help:Data_type#Senses" title="Special:MyLanguage/Help:Data type">Senses</a></span> in the form Lxxx-Syy.</li>
-        <li><span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;"><a href="/wiki/Special:MyLanguage/Help:Data_type#String" title="Special:MyLanguage/Help:Data type">Strings</a></span> (including URLs, and numerical values of text fields, for example external-ID property values) <i><span style="font-variant: small-caps">must</span></i> be in "double quotes". Many statements take values in <i>string</i> format, including external identifiers (like <a href="/wiki/Property:P214" title="Property:P214">VIAF ID <small>(P214)</small></a>), filenames (like <a href="/wiki/Property:P18" title="Property:P18">image <small>(P18)</small></a>) or other page names (like <a href="/wiki/Property:P373" title="Property:P373">Commons category <small>(P373)</small></a>).
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q41576278</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P373</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"Antoni Ignacy Mietelski"</span></dd>
-        <dd>Meaning: add to <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q41576278" title="Q41576278">Antoni Ignacy Mietelski <small>(Q41576278)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P373" title="Property:P373">Commons category <small>(P373)</small></a></span> <span style="padding:0 .2em"><a href="https://commons.wikimedia.org/wiki/Category:Antoni_Ignacy_Mietelski" class="extiw" title="c:Category:Antoni Ignacy Mietelski">Antoni Ignacy Mietelski</a></span></span></dd>
-        <dd><b>Caution:</b> Some characters in the string seem to confuse the tool. Those include: "_" (underscore), " (double quote), " " (spaces), "=", and possibly more. Adding URLs with those characters, like <a rel="nofollow" class="external text" href="http://www.comune.castelleone.cr.it/news/leggi_area.asp?ART_ID=1731&amp;MEC_ID=181&amp;MEC_IDFiglie=203">this one</a> or <a rel="nofollow" class="external text" href="http://www.castelseprio.net/info_tur/monumenti/S.%20Maria/chiesa/S.Maria.htm">this</a> might fail. String and URLs with those characters might work when <a href="/wiki/Help:QuickStatements#Using_QuickStatements_version_2" title="Help:QuickStatements">interacting with the tool through the interface</a> but fail when <a href="/wiki/Help:QuickStatements#Running_QuickStatements_through_URL" title="Help:QuickStatements">interacting through URL</a>.</dd></dl></li>
-        <li><span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;"><a href="/wiki/Special:MyLanguage/Help:Data_type#monolingualtext" title="Special:MyLanguage/Help:Data type">Monolingual text</a></span> prefix text in "double quotes" with the language and a colon, e.g. <tt>en:"Some text" </tt>
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q1214098</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P1476</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">pl:"Krzyżacy"</span></dd>
-        <dd>Meaning: add to <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q1214098" title="Q1214098">The Knights of the Cross <small>(Q1214098)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P1476" title="Property:P1476">title <small>(P1476)</small></a></span> <span style="padding:0 .2em">"Krzyżacy" (Polish)</span></span></dd></dl></li>
-        <li><span style="background-color:#D7D1F8;color:black;border:3px solid #A095EE;"><a href="/wiki/Special:MyLanguage/Help:Data_type#Time" title="Special:MyLanguage/Help:Data type">Time</a></span> values <i><span style="font-variant: small-caps">must</span></i> be in format eg <tt>+1967-01-17T00:00:00Z/11</tt>, where <tt>/11</tt> designates the precision. The precision is: 0 - billion years, 1 - hundred million years, ..., 6 - millennium, 7 - century, 8 - decade, <b>9 - year</b> (default), 10 - month, 11 - day, <s>12 - hour, 13 - minute, 14 - second</s>.
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q41576483</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P569</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D7D1F8;color:black;border:3px solid #A095EE;">+1839-00-00T00:00:00Z/9</span></dd>
-        <dd>Meaning: add to <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q41576483" title="Q41576483">Bronisław Podbielski <small>(Q41576483)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P569" title="Property:P569">date of birth <small>(P569)</small></a></span> <span style="padding:0 .2em">+1839</span></span></dd>
-        <dd>Use "-" for dates BC; and use at least 4 digits.</dd></dl></li>
-        <li><span style="background-color:#FFEAB7;color:black;border:3px solid #FFC848;"><a href="/wiki/Special:MyLanguage/Help:Data_type#Globe_coordinate" title="Special:MyLanguage/Help:Data type">Location coordinates</a></span> in the form of <tt>@LAT/LON</tt>, with LAT and LON as decimal numbers.
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q3669835</span>  <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P625</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFEAB7;color:black;border:3px solid #FFC848;">@043.26193/010.92708</span></dd>
-        <dd>Meaning: add location to <a href="/wiki/Q3669835" title="Q3669835">San Dalmazio <small>(Q3669835)</small></a></dd></dl></li>
-        <li><span style="background-color:#E1E1A8;color:black;border:3px solid #D1D17A;"><a href="/wiki/Special:MyLanguage/Help:Data_type#Quantity" title="Special:MyLanguage/Help:Data type">Quantity</a></span> in the form of <tt>amount~toleranceUxx</tt> (<tt>amount[lower,upper]Uxx</tt> in QuickStatements version 1), with amount, tolerance, lower and upper being a rational number and Uxx being the item number of a <tt>unit</tt> (Qxx).
-        <dl><dd><tt>unit</tt> is optional.</dd>
-        <dd><tt>tolerance</tt> is optional.</dd>
-        <dd><tt>lower</tt>, <tt>upper</tt> are optional. lower and upper <i><span style="font-variant: small-caps">must</span></i> be either both present or not present at all. When present, they should be enclosed in square brackets and separated by <tt>,</tt></dd>
-        <dd><tt>amount</tt>, <tt>lower</tt> and <tt>upper</tt> <i><span style="font-variant: small-caps">must</span></i> use <tt>.</tt> as decimal separator, <i><span style="font-variant: small-caps">must not</span></i> use any thousands separator and <i><span style="font-variant: small-caps">may</span></i> be prefixed by + or -.</dd>
-        <dd>Don't leave any space in the quantity.</dd>
-        <dd><tt>10</tt>, <tt>10U11573</tt>, <tt>-10[-12.5,-7.5]</tt>, <tt>0[-5,5]U11573</tt> are all valid quantities (where U11573 indicates <a href="/wiki/Q11573" title="Q11573">metre <small>(Q11573)</small></a>)</dd>
-        <dd>Quantities with tolerance <i><span style="font-variant: small-caps">may</span></i> be entered as <tt>1.2~0.3</tt> (in QuickStatements version 2), which is the same as <tt>1.2[0.9,1.5]</tt> (in QuickStatements version 1) and means 1.2±0.3. Note that due to the way computers operate with floating-point numbers the input format of version 2 may produce undesired results when working with decimal numbers.</dd></dl></li>
-        <li><tt>somevalue</tt> for <span style="background:transparent;color:#54595d;" title="transparent"><i>unknown value</i></span> <small><a href="/wiki/Special:MyLanguage/Help:Statements#Unknown_or_no_values" title="Special:MyLanguage/Help:Statements">Help</a></small></li>
-        <li><tt>novalue</tt> for <span style="background:transparent;color:#54595d;" title="transparent"><i>no value</i></span> <small><a href="/wiki/Special:MyLanguage/Help:Statements#Unknown_or_no_values" title="Special:MyLanguage/Help:Statements">Help</a></small></li></ul>
-        <h3><span class="mw-headline" id="Add_statement_with_qualifiers">Add statement with qualifiers</span></h3>
-        <p>Each statement "triplet" can be followed by an unlimited number of "qualifiers pairs" of <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">property</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DDD;color:black;border:3px solid #BBB;">value</span>.
-        </p>
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q41577083</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P570</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D7D1F8;color:black;border:3px solid #A095EE;">+1586-00-00T00:00:00Z/7</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P1319</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D7D1F8;color:black;border:3px solid #A095EE;">+1586-00-00T00:00:00Z/9</span></dd>
-        <dd>Meaning:  add to <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q41577083" title="Q41577083">Gian Federigo Bonzagna <small>(Q41577083)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P570" title="Property:P570">date of death <small>(P570)</small></a></span> <span style="padding:0 .2em">16. century</span> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><b style="color:#AAA">/</b> <a href="/wiki/Property:P1319" title="Property:P1319">earliest date <small>(P1319)</small></a></span> <span style="padding:0 .2em">+1586</span></span></dd></dl>
-        <h3><span class="mw-headline" id="Add_statement_with_sources">Add statement with sources</span></h3>
-        <p>Each statement can be followed by an unlimited number of "source pairs" of <span style="background-color:#FFDFDF;color:black;border:3px solid #FF9797;">source property</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DDD;color:black;border:3px solid #BBB;">value</span>. The source property is identical to the "normal" property, except it uses the form Sxx instead of Pxx.
-        </p>
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q22124656</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P21</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q6581097</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDFDF;color:black;border:3px solid #FF9797;">S143</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q24731821</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDFDF;color:black;border:3px solid #FF9797;">S813</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D7D1F8;color:black;border:3px solid #A095EE;">+2017-10-04T00:00:00Z/11</span></dd>
-        <dd>Meaning:  add to <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q22124656" title="Q22124656">Gotô Ichijô <small>(Q22124656)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P21" title="Property:P21">sex or gender <small>(P21)</small></a></span> <span style="padding:0 .2em"><a href="/wiki/Q6581097" title="Q6581097">male <small>(Q6581097)</small></a></span></span> with reference <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P143" title="Property:P143">imported from Wikimedia project <small>(P143)</small></a></span> <span style="padding:0 .2em"><a href="/wiki/Q24731821" title="Q24731821">Commons Creator page <small>(Q24731821)</small></a></span> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><b style="color:#AAA">/</b> <a href="/wiki/Property:P813" title="Property:P813">retrieved <small>(P813)</small></a></span> <span style="padding:0 .2em"><span style="white-space:nowrap"><time class="dtstart" datetime="2017-10-04">4 October 2017</time></span></span></span></dd></dl>
-        <p><b>Notes:</b>
-        </p>
-        <ul><li>Existing statements with an exact match (property and value) will not be added again; however additional references might be added to the statement.</li>
-        <li>In QuickStatements version 1 each source claim represented an individual reference, i.e. they were not grouped within one reference; it works properly now in QuickStatements version 2.</li></ul>
-        <h3><span id="Adding_labels.2C_aliases.2C_descriptions_and_sitelinks"></span><span class="mw-headline" id="Adding_labels,_aliases,_descriptions_and_sitelinks">Adding labels, aliases, descriptions and sitelinks</span></h3>
-        <p>As with adding simple text statements, each command must consist of an <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">item</span>, a <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">command</span>, and a <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">string</span> in double quotes.
-        </p>
-        <ul><li>To add a <b>label</b> in a specific language to an item, use "Lxx" instead of a property, with "xx" as the language code.
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q340122</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">Lpl</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"Cyprian Kamil Norwid"</span></dd>
-        <dd>Meaning: add Polish label "Cyprian Kamil Norwid" to <a href="/wiki/Q340122" title="Q340122">Cyprian Norwid <small>(Q340122)</small></a></dd></dl></li>
-        <li>To add an <b>alias</b> in a specific language to an item, use "Axx" instead of a property, with "xx" as the language code.
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q340122</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">Aen</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"Cyprjan Kamil Norwid"</span></dd>
-        <dd>Meaning: add English alias "Cyprjan Kamil Norwid" to <a href="/wiki/Q340122" title="Q340122">Cyprian Norwid <small>(Q340122)</small></a></dd></dl></li></ul>
-        <ul><li>To add a <b>description</b> in a specific language to an item, use "Dxx" instead of a property, with "xx" as the language code.
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q340122</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">Dde</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"polnischer Dichter"</span></dd>
-        <dd>Meaning: add German description "polnischer Dichter" to <a href="/wiki/Q340122" title="Q340122">Cyprian Norwid <small>(Q340122)</small></a></dd></dl></li>
-        <li>To add a <b>sitelink</b> to a specific page on a site to an item, use "Sxxx" instead of a property, with "xxx" as the site (e.g. enwiki, commonswiki).
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q340122</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">Szhwiki</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"塞浦路斯·諾爾維特"</span></dd>
-        <dd>Meaning: add sitelink to Chinese Wikipedia (<a href="https://en.wikipedia.org/wiki/zh:%E5%A1%9E%E6%B5%A6%E8%B7%AF%E6%96%AF%C2%B7%E8%AB%BE%E7%88%BE%E7%B6%AD%E7%89%B9" class="extiw" title="w:zh:塞浦路斯·諾爾維特">塞浦路斯·諾爾維特</a>) to <a href="/wiki/Q340122" title="Q340122">Cyprian Norwid <small>(Q340122)</small></a></dd></dl></li></ul>
-        <p>If you want to remove a label/description/sitelink, the value has to be an empty string and the rest of the command will be the same.
-        </p>
-        <h3><span class="mw-headline" id="Item_creation">Item creation</span></h3>
-        <style data-mw-deduplicate="TemplateStyles:r971093707">.mw-parser-output th.mbox-text,.mw-parser-output td.mbox-text{border:none;padding:0.25em 0.9em;width:100%}.mw-parser-output td.mbox-image{border:none;padding:2px 3px 2px 0.9em;text-align:center}.mw-parser-output td.mbox-imageright{border:none;padding:2px 0.9em 2px 0;text-align:center}.mw-parser-output td.mbox-empty-cell{border:none;padding:0;width:1px}.mw-parser-output table.ambox{margin:0 10%;border:1px solid #a2a9b1;border-left:10px solid #1e90ff;background:#fbfbfb}.mw-parser-output table.ambox+table.ambox{margin-top:-1px}.mw-parser-output .ambox th.mbox-text,.mw-parser-output .ambox td.mbox-text{padding:0.25em 0.5em}.mw-parser-output .ambox td.mbox-image{padding:2px 0 2px 0.5em}.mw-parser-output .ambox td.mbox-imageright{padding:2px 0.5em 2px 0}.mw-parser-output table.ambox-notice{border-left:10px solid #1e90ff}.mw-parser-output table.ambox-speedy{border-left:10px solid #b22222;background:#fee}.mw-parser-output table.ambox-delete{border-left:10px solid #b22222}.mw-parser-output table.ambox-content{border-left:10px solid #f28500}.mw-parser-output table.ambox-style{border-left:10px solid #f4c430}.mw-parser-output table.ambox-move{border-left:10px solid #9932cc}.mw-parser-output table.ambox-protection{border-left:10px solid #bba}.mw-parser-output table.imbox{margin:4px 10%;border-collapse:collapse;border:3px solid #1e90ff;background:#fbfbfb}.mw-parser-output .imbox .mbox-text .imbox{margin:0 -0.5em;display:block}.mw-parser-output .mbox-inside .imbox{margin:4px}.mw-parser-output table.imbox-notice{border:3px solid #1e90ff}.mw-parser-output table.imbox-speedy{border:3px solid #b22222;background:#fee}.mw-parser-output table.imbox-delete{border:3px solid #b22222}.mw-parser-output table.imbox-content{border:3px solid #f28500}.mw-parser-output table.imbox-style{border:3px solid #f4c430}.mw-parser-output table.imbox-move{border:3px solid #9932cc}.mw-parser-output table.imbox-protection{border:3px solid #bba}.mw-parser-output table.imbox-license{border:3px solid #88a;background:#f7f8ff}.mw-parser-output table.imbox-featured{border:3px solid #cba135}.mw-parser-output table.cmbox{margin:3px 10%;border-collapse:collapse;border:1px solid #a2a9b1;background:#dfe8ff}.mw-parser-output table.cmbox-notice{background:#dfe8ff}.mw-parser-output table.cmbox-speedy{margin-top:4px;margin-bottom:4px;border:4px solid #b22222;background:#ffdbdb}.mw-parser-output table.cmbox-delete{background:#ffdbdb}.mw-parser-output table.cmbox-content{background:#ffe7ce}.mw-parser-output table.cmbox-style{background:#fff9db}.mw-parser-output table.cmbox-move{background:#e4d8ff}.mw-parser-output table.cmbox-protection{background:#efefe1}.mw-parser-output table.ombox{margin:4px 10%;border-collapse:collapse;border:1px solid #a2a9b1;background:#f8f9fa}.mw-parser-output table.ombox-notice{border:1px solid #a2a9b1}.mw-parser-output table.ombox-speedy{border:2px solid #b22222;background:#fee}.mw-parser-output table.ombox-delete{border:2px solid #b22222}.mw-parser-output table.ombox-content{border:1px solid #f28500}.mw-parser-output table.ombox-style{border:1px solid #f4c430}.mw-parser-output table.ombox-move{border:1px solid #9932cc}.mw-parser-output table.ombox-protection{border:2px solid #bba}.mw-parser-output table.tmbox{margin:4px 10%;border-collapse:collapse;border:1px solid #c0c090;background:#f8eaba}.mw-parser-output .mediawiki .mbox-inside .tmbox{margin:2px 0;width:100%}.mw-parser-output .mbox-inside .tmbox.mbox-small{line-height:1.5em;font-size:100%}.mw-parser-output table.tmbox-speedy{border:2px solid #b22222;background:#fee}.mw-parser-output table.tmbox-delete{border:2px solid #b22222}.mw-parser-output table.tmbox-content{border:2px solid #f28500}.mw-parser-output table.tmbox-style{border:2px solid #f4c430}.mw-parser-output table.tmbox-move{border:2px solid #9932cc}.mw-parser-output table.tmbox-protection,.mw-parser-output table.tmbox-notice{border:1px solid #c0c090}.mw-parser-output table.fmbox{clear:both;margin:0.2em 0;width:100%;border:1px solid #a2a9b1;background:#f8f9fa}.mw-parser-output table.fmbox-system{background:#f8f9fa}.mw-parser-output table.fmbox-warning{border:1px solid #bb7070;background:#ffdbdb}.mw-parser-output table.fmbox-editnotice{background:transparent}</style><table class="plainlinks ombox ombox-notice" role="presentation"><tbody><tr><td class="mbox-image"><a href="https://commons.wikimedia.org/wiki/File:Stop_hand_nuvola.svg" class="image" title="Notice"><img alt="Notice" src="//upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Stop_hand_nuvola.svg/40px-Stop_hand_nuvola.svg.png" decoding="async" width="40" height="40" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Stop_hand_nuvola.svg/60px-Stop_hand_nuvola.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Stop_hand_nuvola.svg/80px-Stop_hand_nuvola.svg.png 2x" data-file-width="240" data-file-height="240"></a></td><td class="mbox-text">Please ensure you do not create duplicate items!</td></tr></tbody></table>
-        <p>You can create new items by inserting a line consisting only of the word "CREATE". To add statements to the newly created item, use the word "LAST" instead of the <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q number</span>, and the statement will be added to the last created item.
-        </p><p>An example for creating a new item, adding a sitelink, and setting a label:
-        </p>
-        <dl><dd><span style="background-color:#DDD;color:black;border:3px solid #BBB;">CREATE</span></dd>
-        <dd><span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">LAST</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">Sfrwiki</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"Le croissant magnifique!"</span></dd>
-        <dd><span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">LAST</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">Lfr</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"Le croissant magnifique!"</span></dd>
-        <dd>Meaning: create a new item with a link to French Wikipedia <a href="https://en.wikipedia.org/wiki/fr:Le_croissant_magnifique!" class="extiw" title="w:fr:Le croissant magnifique!">w:fr:Le croissant magnifique!</a> and with French label "Le croissant magnifique!"</dd></dl>
-        <h3><span class="mw-headline" id="Item_merging">Item merging</span></h3>
-        <p>You can merge two items. The first item will be merged and (if successful) redirected into the second item.
-        </p><p><span style="background-color:#DDD;color:black;border:3px solid #BBB;">MERGE</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Qsource</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Qdestination</span>
-        </p>
-        <h3><span class="mw-headline" id="Removing_statements">Removing statements</span></h3>
-        <link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r971093707"><table class="plainlinks ombox ombox-notice" role="presentation"><tbody><tr><td class="mbox-image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/a/a8/OOjs_UI_icon_info_big_progressive.svg/40px-OOjs_UI_icon_info_big_progressive.svg.png" decoding="async" width="40" height="40" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/a/a8/OOjs_UI_icon_info_big_progressive.svg/60px-OOjs_UI_icon_info_big_progressive.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/a/a8/OOjs_UI_icon_info_big_progressive.svg/80px-OOjs_UI_icon_info_big_progressive.svg.png 2x" data-file-width="24" data-file-height="24"></td><td class="mbox-text">Only working in QuickStatements version 2</td></tr></tbody></table>
-        <p>You can remove specific statements by prefixing a line with "-".
-        </p>
-        <dl><dd>Example: -<span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q4115189</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P31</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q1</span></dd>
-        <dd>Meaning: remove from <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q4115189" title="Q4115189">Wikidata Sandbo <small>(Q4115189)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P31" title="Property:P31">instance of <small>(P31)</small></a></span> <span style="padding:0 .2em"><a href="/wiki/Q1" title="Q1">Universe <small>(Q1)</small></a></span></span></dd></dl>
-        <h3><span class="mw-headline" id="Comments">Comments</span></h3>
-        <link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r971093707"><table class="plainlinks ombox ombox-notice" role="presentation"><tbody><tr><td class="mbox-image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/a/a8/OOjs_UI_icon_info_big_progressive.svg/40px-OOjs_UI_icon_info_big_progressive.svg.png" decoding="async" width="40" height="40" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/a/a8/OOjs_UI_icon_info_big_progressive.svg/60px-OOjs_UI_icon_info_big_progressive.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/a/a8/OOjs_UI_icon_info_big_progressive.svg/80px-OOjs_UI_icon_info_big_progressive.svg.png 2x" data-file-width="24" data-file-height="24"></td><td class="mbox-text">Only working in QuickStatements version 2</td></tr></tbody></table>
-        <p>Every command can have a comment at its end, which will be inserted into the edit summary for the command. Use the <tt>/* ... */</tt> syntax. Before this a TAB <i><span style="font-variant: small-caps">may</span></i> be inserted. Spaces around the comment will be removed from the command before processing. The tool splits adding of a claim and its reference in two edits. When using the "version 1 format" import it seems not to be possible to add a comment for the edit adding the reference. The comment is added to the edit adding the claim (if the claim does not exist yet and is added at all).
-        </p>
-        <dl><dd>Example: <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q4115189</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P31</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q1</span> /* This is a comment. There are many others like it, but this one is mine. */</dd>
-        <dd>Meaning: add to <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q4115189" title="Q4115189">Wikidata Sandbo <small>(Q4115189)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P31" title="Property:P31">instance of <small>(P31)</small></a></span> <span style="padding:0 .2em"><a href="/wiki/Q1" title="Q1">Universe <small>(Q1)</small></a></span></span>, with "This is a comment. There are many others like it, but this one is mine." in the edit summary.</dd></dl>
-        <p>Sample for use with LibreOffice:
-        </p>
-        <table class="wikitable">
-        <tbody><tr><th>string (input)</th><th>language (input)</th><th>item</th><th>property</th><th>value (monolingual dataype)
-        </th></tr><tr><td>Gode vibrationer</td><td>da</td><td>Q12314076</td><td>P1476</td><td><code>=B2&amp;":"""&amp;A2&amp;""""</code>
-        </td></tr></tbody></table>
-        <h2><span class="mw-headline" id="CSV_file_syntax">CSV file syntax</span></h2>
-        <p><a href="https://commons.wikimedia.org/wiki/File:Singapore_Information-signs_Warning-signs-02.jpg" class="image"><img alt="Singapore Information-signs Warning-signs-02.jpg" src="//upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Singapore_Information-signs_Warning-signs-02.jpg/100px-Singapore_Information-signs_Warning-signs-02.jpg" decoding="async" width="100" height="55" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Singapore_Information-signs_Warning-signs-02.jpg/150px-Singapore_Information-signs_Warning-signs-02.jpg 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Singapore_Information-signs_Warning-signs-02.jpg/200px-Singapore_Information-signs_Warning-signs-02.jpg 2x" data-file-width="4886" data-file-height="2684"></a>
-        <i>This page or section is in the process of an expansion or major restructuring. You are welcome to assist in its construction by editing it as well.</i>
-        </p><p>In QuickStatements version 2, one can also cut and paste a properly structured CSV file as an alternative to the syntax introduced in QuickStatements version 1. The CSV file will specify commands to execute. The first row is a header describing how the columns are interpreted.
-        </p><p>The other columns may specify the following commands:
-        </p>
-        <dl><dt>P1234</dt>
-        <dd>A property ID (uppercase) begins a new statement. The column value specifies the main value of the statement, in QuickStatements version 1 syntax.</dd>
-        <dt>qal1234</dt>
-        <dd>A lowercase "qal" followed by a property number (without "P") adds a qualifier to the current statement. The column value specifies the value of the qualifier, in QuickStatements version 1 syntax. There must be some "P" column before a "qal" column to specify which statement the qualifier is added to.</dd>
-        <dt>S1234</dt>
-        <dd>An uppercase "S" followed by a property number (without "P") begins a new source for the current statement. The column value specifies the value of the source, in QuickStatements version 1 syntax. There must be some "P" column before an "S" column to specify which statement the source is added to.</dd>
-        <dt>s1234</dt>
-        <dd>A lowercase "s" followed by a property number (without "P") adds another property-value pair to the current source. The column value specifies the value of the source, in QuickStatements version 1 syntax. There must be some "S" column before an "s" column to specify which source the property-value pair is added to.</dd>
-        <dt>Len</dt>
-        <dd>An uppercase "L" followed by a language code sets the label in that language.</dd>
-        <dt>Dfr</dt>
-        <dd>An uppercase "D" followed by a language code sets the description in that language.</dd>
-        <dt>Ade</dt>
-        <dd>An uppercase "A" followed by a language code adds an alias in that language.</dd>
-        <dt>Senwiki</dt>
-        <dd>An uppercase "S" followed by a site ID adds a sitelink to that site.</dd>
-        <dt>#</dt>
-        <dd>A number sign character sets the edit summary (comment) of the preceding command. The tool splits adding of a claim and its reference in two edits. A comment can be added to the edit summary of each of them. For the claim by putting a "#" column between the columns for the claim and its reference, for the reference by putting a "#" column behind its columns. For example:</dd></dl>
-        <pre>qid,P21,#,S143,s813,#
-        Q22124656,Q6581097,comment to claim adding edit,Q24731821,+2017-10-04T00:00:00Z/11,comment to reference adding edit
-        </pre>
-        <p>Statement column headers may also begin with - to remove the statement. (Note that this is only valid in the header for the whole column, not in individual values.) Removing other column types is not yet supported and will result in an error when the command is run; however, sitelinks and labels can be removed by setting them to the empty string (without - in the column header).
-        </p>
-        <dl><dt>For example</dt>
-        <dd></dd></dl>
-        <pre>qid,Len,Den,Aen,P31,-P31,P21,P735,qal1545,S248,s214,S143,Senwiki
-        Q42,Douglas Adams,author,Douglas Noël Adams,Q5,Q36180,Q6581097,Q463035,1,Q54919,113230702,Q328,Douglas Adams
-        </pre>
-        <p>To create a new item, the first element of the row needs to be empty, so the line starts with a <code>,</code>.
-        </p>
-        <dl><dt>For example</dt>
-        <dd></dd></dl>
-        <pre>qid,Len,Den,P31
-        ,Regina Phalange,fictional character,Q5
-        </pre>
-        <p>The double quotes for string values seem to interfere with CSV syntax. Empirically four double quotes before and one after the string have been found to work. Sometimes three double quotes before and three double quotes after work instead.
-        </p>
-        <dl><dt>For example</dt>
-        <dd></dd></dl>
-        <pre>qid,P473
-        Q304652,"""62"""
-        Q582223,"""34"""
-        </pre>
-        <dl><dt>For example</dt></dl>
-        <p>creates a new item. Suitable for LibreOffice
-        </p>
-        <table class="wikitable">
-        <tbody><tr><th>filename</th><th>label</th><th>description</th><th><code>qid,P31,Len,Den,P18</code>
-        </th></tr><tr><td><code>Mona Lisa - the Louvre.jpg</code></td><td>Mona Lisa</td><td>painting by Leonardo da Vinci</td><td><code>=",Q3305213,"""&amp;B2&amp;""","""&amp;C2&amp;""","""""""&amp;A2&amp;""""""""</code>
-        </td></tr></tbody></table>
-        <h2><span class="mw-headline" id="Running_QuickStatements">Running QuickStatements</span></h2>
-        <h3><span class="mw-headline" id="Using_QuickStatements_version_2">Using QuickStatements version 2</span></h3>
-        <p>Here is how to use QuickStatements (version 2) in basic mode:
-        </p>
-        <ol><li>Go to <a class="external free" href="https://tools.wmflabs.org/quickstatements/">https://tools.wmflabs.org/quickstatements/</a></li>
-        <li>Make sure you are logged in OAuth and your name is visible in the upper right corner. If not then log in.</li>
-        <li>Click "New batch".</li>
-        <li>Cut and paste your commands. See the syntax in the section above.</li>
-        <li>When you are done, click  "Import V1 commands" or "Import CSV commands".</li>
-        <li>The tool will convert your commands into human-readable form. Inspect them and click "Run" to execute.</li>
-        <li>As your statements are being processed, double-check the results, and press "Stop" if you detect a problem.</li>
-        <li>The user interface will tell you when all statements have been processed.</li></ol>
-        <ul class="gallery mw-gallery-packed">
-        		<li class="gallerybox" style="width: 825px;"><div style="width: 825px;">
-        			<div class="thumb" style="width: 822.672px;"><div style="margin:0px auto;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_1_-_step_1.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/2/23/QuickStatements_-_V2_-_example_1_-_step_1.png" decoding="async" width="822" height="270" data-file-width="648" data-file-height="213"></a></div></div>
-        			<div class="gallerytext">
-        <p>Preparing statements in a spreadsheet
-        </p>
-        			</div>
-        		</div></li>
-        		<li class="gallerybox" style="width: 373.417px;"><div style="width: 373.417px;">
-        			<div class="thumb" style="width: 371.417px;"><div style="margin:0px auto;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_1_-_step_2.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/d/d4/QuickStatements_-_V2_-_example_1_-_step_2.png/450px-QuickStatements_-_V2_-_example_1_-_step_2.png" decoding="async" width="371" height="272" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/d/d4/QuickStatements_-_V2_-_example_1_-_step_2.png/675px-QuickStatements_-_V2_-_example_1_-_step_2.png 1.5x, //upload.wikimedia.org/wikipedia/commons/d/d4/QuickStatements_-_V2_-_example_1_-_step_2.png 2x" data-file-width="834" data-file-height="612"></a></div></div>
-        			<div class="gallerytext">
-        <p>Cut-and-paste the cells directly into QS import window
-        </p>
-        			</div>
-        		</div></li>
-        		<li class="gallerybox" style="width: 220.792px;"><div style="width: 220.792px;">
-        			<div class="thumb" style="width: 219.136px;"><div style="margin:0px auto;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_1_-_step_3.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/0/08/QuickStatements_-_V2_-_example_1_-_step_3.png/265px-QuickStatements_-_V2_-_example_1_-_step_3.png" decoding="async" width="219" height="272" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/0/08/QuickStatements_-_V2_-_example_1_-_step_3.png/397px-QuickStatements_-_V2_-_example_1_-_step_3.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/0/08/QuickStatements_-_V2_-_example_1_-_step_3.png/529px-QuickStatements_-_V2_-_example_1_-_step_3.png 2x" data-file-width="834" data-file-height="1040"></a></div></div>
-        			<div class="gallerytext">
-        <p>QS converted your commands into human readable form and waits for approval
-        </p>
-        			</div>
-        		</div></li>
-        		<li class="gallerybox" style="width: 220.792px;"><div style="width: 220.792px;">
-        			<div class="thumb" style="width: 219.136px;"><div style="margin:0px auto;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_1_-_step_4.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/d/db/QuickStatements_-_V2_-_example_1_-_step_4.png/265px-QuickStatements_-_V2_-_example_1_-_step_4.png" decoding="async" width="219" height="272" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/d/db/QuickStatements_-_V2_-_example_1_-_step_4.png/397px-QuickStatements_-_V2_-_example_1_-_step_4.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/d/db/QuickStatements_-_V2_-_example_1_-_step_4.png/529px-QuickStatements_-_V2_-_example_1_-_step_4.png 2x" data-file-width="834" data-file-height="1040"></a></div></div>
-        			<div class="gallerytext">
-        <p>QS executing the commands. Please see "Stop" button.
-        </p>
-        			</div>
-        		</div></li>
-        		<li class="gallerybox" style="width: 178.656px;"><div style="width: 178.656px;">
-        			<div class="thumb" style="width: 177px;"><div style="margin:0px auto;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_1_-_step_5.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/d/d3/QuickStatements_-_V2_-_example_1_-_step_5.png/265px-QuickStatements_-_V2_-_example_1_-_step_5.png" decoding="async" width="177" height="220" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/d/d3/QuickStatements_-_V2_-_example_1_-_step_5.png/397px-QuickStatements_-_V2_-_example_1_-_step_5.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/d/d3/QuickStatements_-_V2_-_example_1_-_step_5.png/529px-QuickStatements_-_V2_-_example_1_-_step_5.png 2x" data-file-width="834" data-file-height="1040"></a></div></div>
-        			<div class="gallerytext">
-        <p>QS completed the task
-        </p>
-        			</div>
-        		</div></li>
-        </ul>
-        <h3><span class="mw-headline" id="Using_QuickStatements_version_1">Using QuickStatements version 1</span></h3>
-        <div class="thumb tright"><div class="thumbinner" style="width:302px;"><a href="https://commons.wikimedia.org/wiki/File:120317_quickstate_02.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/0/05/120317_quickstate_02.png/300px-120317_quickstate_02.png" decoding="async" width="300" height="188" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/0/05/120317_quickstate_02.png/450px-120317_quickstate_02.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/0/05/120317_quickstate_02.png/600px-120317_quickstate_02.png 2x" data-file-width="1440" data-file-height="900"></a>  <div class="thumbcaption"><div class="magnify"><a href="/wiki/File:120317_quickstate_02.png" class="internal" title="Enlarge"></a></div>Screenshot of using QuickStatements version 1</div></div></div>
-        <p>QuickStatements version 1 is still available, but no longer maintained. It stopped <a rel="nofollow" class="external text" href="https://bitbucket.org/magnusmanske/wikidata-todo/issues/62">working</a> for some users, while still working fine for others. <a class="external text" href="https://tools.wmflabs.org/niosh/wikidata-todo/public_html/quick_statements.php">NIOSH's fork</a> of the tool is also available.
-        </p>
-        <ol><li>Go to <a class="external free" href="https://tools.wmflabs.org/wikidata-todo/quick_statements.php">https://tools.wmflabs.org/wikidata-todo/quick_statements.php</a></li>
-        <li>Cut and paste your commands into the window</li>
-        <li>Click "Do it!"</li>
-        <li>The user interface will tell you when all statements have been processed.</li></ol>
-        <h3><span class="mw-headline" id="Using_QuickStatements_version_2_in_batch_mode">Using QuickStatements version 2 in batch mode</span></h3>
-        <h4><span id="When_to_use_batch_mode.3F"></span><span class="mw-headline" id="When_to_use_batch_mode?">When to use batch mode?</span></h4>
-        <style data-mw-deduplicate="TemplateStyles:r966415833">.mw-parser-output table.ombox{margin:4px 10%;border-collapse:collapse;border:1px solid #a2a9b1;background:#f8f9fa}.mw-parser-output table.ombox-notice{border:1px solid #a2a9b1}.mw-parser-output table.ombox-speedy{border:2px solid #b22222;background:#fee}.mw-parser-output table.ombox-delete{border:2px solid #b22222}.mw-parser-output table.ombox-content{border:1px solid #f28500}.mw-parser-output table.ombox-style{border:1px solid #f4c430}.mw-parser-output table.ombox-move{border:1px solid #9932cc}.mw-parser-output table.ombox-protection{border:2px solid #bba}</style><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r971093707"><table class="plainlinks ombox ombox-content ambox-Update" role="presentation"><tbody><tr><td class="mbox-image"><a href="https://commons.wikimedia.org/wiki/File:Ambox_current_red.svg" class="image"><img alt="Ambox current red.svg" src="//upload.wikimedia.org/wikipedia/commons/thumb/9/98/Ambox_current_red.svg/42px-Ambox_current_red.svg.png" decoding="async" width="42" height="34" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/9/98/Ambox_current_red.svg/63px-Ambox_current_red.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/9/98/Ambox_current_red.svg/84px-Ambox_current_red.svg.png 2x" data-file-width="360" data-file-height="290"></a></td><td class="mbox-text">This page is <b>outdated</b>.</td></tr></tbody></table>
-        <div class="thumb tright"><div class="thumbinner" style="width:222px;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_1_-_step_3.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/0/08/QuickStatements_-_V2_-_example_1_-_step_3.png/220px-QuickStatements_-_V2_-_example_1_-_step_3.png" decoding="async" width="220" height="274" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/0/08/QuickStatements_-_V2_-_example_1_-_step_3.png/330px-QuickStatements_-_V2_-_example_1_-_step_3.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/0/08/QuickStatements_-_V2_-_example_1_-_step_3.png/440px-QuickStatements_-_V2_-_example_1_-_step_3.png 2x" data-file-width="834" data-file-height="1040"></a>  <div class="thumbcaption"><div class="magnify"><a href="/wiki/File:QuickStatements_-_V2_-_example_1_-_step_3.png" class="internal" title="Enlarge"></a></div>QuickStatements version 2 has "Run in the background" button</div></div></div>
-        <p><i><b>Note: QuickStatements V2 has a new interface, for the new interface parts of the following doesn't apply any more!</b></i>
-        </p><p>Batch mode (also known as running in the background) means your statements are executed from a Wikimedia server, rather than from your Web browser. This has several advantages:
-        </p>
-        <ul><li>Even if you close your browser or if your computer crashes, the statements will be executed until the last one.</li>
-        <li>You can launch several batches in parallel, without slowing down your computer.</li>
-        <li>You get a unique URL for your batch, to which you can refer later. This page shows some statistics about your run.</li>
-        <li>You or an admin can stop your batch by going to this URL. For instance, if it is realized that your batch is erroneous and you are sleeping, an admin can stop it immediately (by going to the individual batch page), rather than having to block you.</li></ul>
-        <p>But there are also drawbacks:
-        </p>
-        <ul><li>It takes a few more clicks, so as a rule of thumb if you only have 10 or fewer statements, then better run them in normal mode.</li>
-        <li>Depending on how busy the server is it might take a time for your batch to start so that checking the results might not be possible immediately.</li></ul>
-        <p>Prior to 18 October 2018, batch edits would also be made as <a href="/wiki/User:QuickStatementsBot" title="User:QuickStatementsBot">User:QuickStatementsBot</a> instead of as the user submitting the batch.
-        </p><p>Before running a batch, it can be a good idea to run a few commands directly in non-batch mode to get a good view of what is being done.
-        </p>
-        <h4><span class="mw-headline" id="Using_batch_mode">Using batch mode</span></h4>
-        <ol><li>Prepare your statement normally as described in <a href="#Using_QuickStatements_version_2">Using QuickStatements version 2</a> section above</li>
-        <li>Instead of pressing "Run", press "Run in background" button.</li>
-        <li>"Your last batches" will show a list of the most recent batches run by you, with statistics.</li></ol>
-        <p>The following statistics values are available:
-        </p>
-        <ul><li>DONE: The number of statements that were successful run</li>
-        <li>ERROR: The number of statements that failed</li>
-        <li>INIT: The number of statements left to run</li>
-        <li>RUN: The number of statements being run right now</li></ul>
-        <h3><span class="mw-headline" id="Running_QuickStatements_through_URL">Running QuickStatements through URL</span></h3>
-        <p>An alternative way of communicating with QuickStatements is to use URL instead of cutting and pasting commands into import window. That approach worked for QuickStatements V1 and original V2, but no longer works in V2 rewrite. For example in original original V2, if we import <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q37887397</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P214</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"96480189"</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#FFDFDF;color:black;border:3px solid #FF9797;">S143</span> <span style="background-color:#FFFFCC;color:gray;border:3px solid #FFFF99;">TAB</span> <span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q565</span> statement using cut-and-past method (image #1 below), it will show the parsed statement and in URL field QS will show https: //tools.wmflabs.org/quickstatements/index_old.html/#v1=<span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q37887397</span><span style="background-color:#FFFFC8;color:black;border:3px solid #FFFF99;">%09</span><span style="background-color:#DBEBFF;color:black;border:3px solid #99C7FF;">P214</span><span style="background-color:#FFFFC8;color:black;border:3px solid #FFFF99;">%09</span><span style="background-color:#FFDBFB;color:black;border:3px solid #FE98F1;">"96480189"</span><span style="background-color:#FFFFC8;color:black;border:3px solid #FFFF99;">%09</span><span style="background-color:#FFDFDF;color:black;border:3px solid #FF9797;">S143</span><span style="background-color:#FFFFC8;color:black;border:3px solid #FFFF99;">%09</span><span style="background-color:#D6F8DE;color:black;border:3px solid #93EEAA;">Q565</span> or <a class="external free" href="https://tools.wmflabs.org/quickstatements/index_old.html/#v1=Q37887397%09P214%09%2296480189%22%09S143%09Q565">https://tools.wmflabs.org/quickstatements/index_old.html/#v1=Q37887397%09P214%09%2296480189%22%09S143%09Q565</a> (image #2 below)(Statement is to add to <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"><b style="padding:0 .2em;white-space:nowrap"><a href="/wiki/Q37887397" title="Q37887397">Emile Justin Merlot <small>(Q37887397)</small></a></b> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P214" title="Property:P214">VIAF ID <small>(P214)</small></a></span> <span style="padding:0 .2em"><a rel="nofollow" class="external text" href="https://viaf.org/viaf/96480189/">"96480189"</a></span></span> with source <span style="margin:0 .2em;background:#FFF;color:#222;border:1px solid #CCC"> <span style="background:#EAECF0;color:#000;padding:0 .2em;white-space:nowrap"><a href="/wiki/Property:P143" title="Property:P143">imported from Wikimedia project <small>(P143)</small></a></span> <span style="padding:0 .2em"><a href="/wiki/Q565" title="Q565">Wikimedia Commons <small>(Q565)</small></a></span></span>). Creating the URL through some other means can skip the initial step. Many templates on Commons, like <a href="https://commons.wikimedia.org/wiki/Template:Creator" class="extiw" title="c:Template:Creator">c:Template:Creator</a> or <a href="https://commons.wikimedia.org/wiki/Template:Authority_control" class="extiw" title="c:Template:Authority control">c:Template:Authority control</a> use that technique to package information that can be imported to Wikidata into a clickable URL.
-        </p>
-        <ul class="gallery mw-gallery-packed">
-        		<li class="gallerybox" style="width: 314px;"><div style="width: 314px;">
-        			<div class="thumb" style="width: 312px;"><div style="margin:0px auto;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_2_-_step_1.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/QuickStatements_-_V2_-_example_2_-_step_1.png/312px-QuickStatements_-_V2_-_example_2_-_step_1.png" decoding="async" width="312" height="180" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/51/QuickStatements_-_V2_-_example_2_-_step_1.png/467px-QuickStatements_-_V2_-_example_2_-_step_1.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/51/QuickStatements_-_V2_-_example_2_-_step_1.png/623px-QuickStatements_-_V2_-_example_2_-_step_1.png 2x" data-file-width="685" data-file-height="396"></a></div></div>
-        			<div class="gallerytext">
-        <p>importing a statement using cut-and-paste method
-        </p>
-        			</div>
-        		</div></li>
-        		<li class="gallerybox" style="width: 434px;"><div style="width: 434px;">
-        			<div class="thumb" style="width: 432px;"><div style="margin:0px auto;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_2_-_step_2.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/c/cc/QuickStatements_-_V2_-_example_2_-_step_2.png/432px-QuickStatements_-_V2_-_example_2_-_step_2.png" decoding="async" width="432" height="180" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/c/cc/QuickStatements_-_V2_-_example_2_-_step_2.png/647px-QuickStatements_-_V2_-_example_2_-_step_2.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/c/cc/QuickStatements_-_V2_-_example_2_-_step_2.png/863px-QuickStatements_-_V2_-_example_2_-_step_2.png 2x" data-file-width="1193" data-file-height="498"></a></div></div>
-        			<div class="gallerytext">
-        <p>QS shows URL while waiting for approval
-        </p>
-        			</div>
-        		</div></li>
-        		<li class="gallerybox" style="width: 452px"><div style="width: 452px">
-        			<div class="thumb" style="width: 450px;"><div style="margin:0px auto;"><a href="https://commons.wikimedia.org/wiki/File:QuickStatements_-_V2_-_example_2_-_step_3.png" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/2/20/QuickStatements_-_V2_-_example_2_-_step_3.png/675px-QuickStatements_-_V2_-_example_2_-_step_3.png" decoding="async" width="450" height="120" srcset="//upload.wikimedia.org/wikipedia/commons/2/20/QuickStatements_-_V2_-_example_2_-_step_3.png 1.5x" data-file-width="840" data-file-height="224"></a></div></div>
-        			<div class="gallerytext">
-        <p>added statement
-        </p>
-        			</div>
-        		</div></li>
-        </ul>
-        <p>Hints:
-        </p>
-        <ul><li>URL cannot have any spaces. <a href="https://en.wikipedia.org/wiki/Percent-encoding" class="extiw" title="w:Percent-encoding">Replace</a> TAB with "%09", double quote with "%22", space with "%20", end-of-line with "%0A", and slash "/" with "%2F".</li>
-        <li>Statements with URL inputs that have "_" or " " can be added through regular interface but not through URL. For example <a class="external text" href="https://tools.wmflabs.org/quickstatements/index_old.html/#v1=Q4115189%09P4656%09%22https://commons.wikimedia.org/wiki/Category:Large_Figure_in_a_Shelter_-_Henry_Moore_(LH_652c)%22%0A">this URL</a> was produced by the tool and it works; however if you click or cut-and-paste it you will end up on a page with slightly different URL, which does not work.</li>
-        <li><code>[[File:Commons to Wikidata QuickStatements.svg|20px|link=https://tools.wmflabs.org/quickstatements/index_old.html/#v1=Q37887397%09P214%09%2296480189%22%09S143%09Q565]]</code> will encode the URL within a handy clickable icon: <a href="https://tools.wmflabs.org/quickstatements/index_old.html/#v1=Q37887397%09P214%09%2296480189%22%09S143%09Q565"><img alt="Commons to Wikidata QuickStatements.svg" src="//upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Commons_to_Wikidata_QuickStatements.svg/20px-Commons_to_Wikidata_QuickStatements.svg.png" decoding="async" width="20" height="20" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Commons_to_Wikidata_QuickStatements.svg/30px-Commons_to_Wikidata_QuickStatements.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Commons_to_Wikidata_QuickStatements.svg/40px-Commons_to_Wikidata_QuickStatements.svg.png 2x" data-file-width="512" data-file-height="512"></a> (click it but do not click "run"; pressing it will not work since that item already has that property).</li>
-        <li>Pages with QuickStatements URLs may be located through <a href="/wiki/Special:LinkSearch" title="Special:LinkSearch">Special:LinkSearch</a> (see <a class="external text" href="https://commons.wikimedia.org/w/index.php?target=https%3A%2F%2Ftools.wmflabs.org%2Fquickstatements%2F%23v1%3D&amp;title=Special%3ALinkSearch">here</a>) or through a database query calling <a href="https://www.mediawiki.org/wiki/Manual:externallinks_table" class="extiw" title="mw:Manual:externallinks table">externallinks table</a> (see for example <a href="https://quarry.wmflabs.org/query/24753" class="extiw" title="quarry:query/24753">here</a>).</li></ul>
-        <h2><span class="mw-headline" id="Limitations">Limitations</span></h2>
-        <p>QuickStatements version 2 currently cannot:
-        </p>
-        <ul><li><a href="/wiki/Wikidata:Project_chat/Archive/2017/04#QuickStatements_-_setting_ranks?" title="Wikidata:Project chat/Archive/2017/04">set ranks</a> for statements</li>
-        <li>set comments when removing statements</li>
-        <li>specify calendar for a date statement</li>
-        <li>specify precision or globe for a location statement</li>
-        <li>add URLs with some characters like "_" or "="</li>
-        <li>add statements to redirected items</li>
-        <li>add second statement with the same property and value but with different qualifiers, since additional qualifiers will be added to the first statement</li>
-        <li>remove qualifier or reference only (without removing statement itself) and aliases</li>
-        <li>update <a href="/wiki/Special:MyLanguage/Help:Badges" title="Special:MyLanguage/Help:Badges">badges</a></li>
-        <li>create lexemes</li></ul>
-        <p>Note that for using QuickStatements an account needs to be <a href="/wiki/Special:MyLanguage/Wikidata:Autoconfirmed_users" title="Special:MyLanguage/Wikidata:Autoconfirmed users">autoconfirmed</a>.
-        </p>
-        <h2><span class="mw-headline" id="FAQ">FAQ</span></h2>
-        <dl><dt>Can QuickStatements add reference statements with more than one claim?</dt>
-        <dd>Yes, current QuickStatements can add references that have for example both <a href="/wiki/Property:P143" title="Property:P143">imported from Wikimedia project <small>(P143)</small></a> and <a href="/wiki/Property:P813" title="Property:P813">retrieved <small>(P813)</small></a> (<a class="external text" href="https://www.wikidata.org/w/index.php?title=Q41532805&amp;type=revision&amp;diff=571801578&amp;oldid=571801573">see here</a>) or both <a href="/wiki/Property:P248" title="Property:P248">stated in <small>(P248)</small></a> and <a href="/wiki/Property:P304" title="Property:P304">page(s) <small>(P304)</small></a>.</dd>
-        <dt>How do I experiment with QuickStatements?</dt>
-        <dd>Use <a href="/wiki/Q4115189" title="Q4115189">Wikidata Sandbo <small>(Q4115189)</small></a>.</dd>
-        <dt>How do I report issues with the tool.</dt>
-        <dd>Check with other users at <a href="/wiki/Help_talk:QuickStatements" title="Help talk:QuickStatements">the talk page</a> or at <a href="/wiki/Wikidata:Project_chat" title="Wikidata:Project chat">Wikidata:Project chat</a>. Confirmed bugs should be reported <a class="external text" href="https://phabricator.wikimedia.org/maniphest/task/edit/form/1/?projects=tools&amp;subscribers=Magnus">on Phabricator</a>.</dd>
-        <dt>Where do I suggest new features?</dt>
-        <dd>You can ask at <a rel="nofollow" class="external text" href="https://bitbucket.org/magnusmanske/wikidata-todo">tool's Bitbucket page</a> or at <a href="/wiki/User:Magnus_Manske/quick_statements2" title="User:Magnus Manske/quick statements2">User:Magnus Manske/quick statements2</a>, but be aware that we keep Magnus busy!</dd>
-        <dt>What is the maximum number of commands I can enter at once?</dt>
-        <dd>Not documented. It was already tested with over 11,000 commands. But note that such large batch runs will take several hours to complete.</dd></dl>
-        <h2><span class="mw-headline" id="Best_practices">Best practices</span></h2>
-        <ul><li>QuickStatements allows edits ranging from single statement to multi-thousand-item batch runs. Very large runs or potentially-controversial runs should go through approval process described in <a href="/wiki/Special:MyLanguage/Wikidata:Bots" title="Special:MyLanguage/Wikidata:Bots">Wikidata:English</a>.</li>
-        <li>Users should avoid creating duplicate items.</li>
-        <li>All statements should have references as per <a href="/wiki/Special:MyLanguage/Help:Sources" title="Special:MyLanguage/Help:Sources">Help:Sources</a>. That might be less important for identifiers, like <a href="/wiki/Property:P214" title="Property:P214">VIAF ID <small>(P214)</small></a> or <a href="/wiki/Property:P650" title="Property:P650">RKDartists ID <small>(P650)</small></a>, etc.</li>
-        <li>Users doing the edits are responsible for fixing or undoing their changes if issues are found. See about <a href="#Removing_statements">statement removal</a>.</li></ul>
-        <h2><span class="mw-headline" id="See_also">See also</span></h2>
-        <ul><li><a class="external text" href="https://tools.wmflabs.org/ash-dev/wdutils/csv2quickstatements.php">CSV to quick_statements</a> tool converts a properly formatted CSV file into a series of QuickStatements commands.</li>
-        <li><a href="/wiki/Wikidata:Zotero#How_to_export_to_QuickStatements" title="Wikidata:Zotero">Zotero export translator to QuickStatements format in zotkat</a>: allows to collect references in Zotero and then export them to QuickStatements for ingest in Wikidata</li></ul>
-        <!--
-        NewPP limit report
-        Parsed by mw1300
-        Cached time: 20191030170055
-        Cache expiry: 2592000
-        Dynamic content: false
-        Complications: []
-        CPU time usage: 0.604 seconds
-        Real time usage: 0.969 seconds
-        Preprocessor visited node count: 5784/1000000
-        Preprocessor generated node count: 0/1500000
-        Post‐expand include size: 41457/2097152 bytes
-        Template argument size: 7398/2097152 bytes
-        Highest expansion depth: 11/40
-        Expensive parser function count: 4/500
-        Unstrip recursion depth: 0/20
-        Unstrip post‐expand size: 28810/5000000 bytes
-        Number of Wikibase entities loaded: 0/500
-        Lua time usage: 0.229/10.000 seconds
-        Lua memory usage: 3.12 MB/50 MB
-        -->
-        <!--
-        Transclusion expansion time report (%,ms,calls,template)
-        100.00%  702.585      1 -total
-         40.57%  285.015     45 Template:Label
-         38.53%  270.741     11 Template:Statement
-         34.25%  240.623     22 Template:P
-         14.44%  101.439      3 Template:Notice
-         14.04%   98.624      3 Template:Mbox
-         10.67%   74.975     22 Template:Q
-          4.40%   30.918      1 Template:2019_Coolest_tool_award
-          4.40%   30.896      1 Template:Shortcut
-          3.96%   27.802      1 Template:Userbox
-        -->
-
-        <!-- Saved in parser cache with key wikidatawiki:pcache:idhash:42892887-0!canonical and timestamp 20191030170055 and revision id 1036518578
-         -->
-        </div><noscript><img src="//www.wikidata.org/wiki/Special:CentralAutoLogin/start?type=1x1" alt="" title="" width="1" height="1" style="border: none; position: absolute;" /></noscript></div>
-
-        		<div class="printfooter">Retrieved from "<a dir="ltr" href="https://www.wikidata.org/w/index.php?title=Help:QuickStatements&amp;oldid=1036518578">https://www.wikidata.org/w/index.php?title=Help:QuickStatements&amp;oldid=1036518578</a>"</div>
-
-        		<div id="catlinks" class="catlinks" data-mw="interface"><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="/wiki/Special:Categories" title="Special:Categories">Categories</a>: <ul><li><a href="/wiki/Category:Help:QuickStatements" title="Category:Help:QuickStatements">Help:QuickStatements</a></li><li><a href="/wiki/Category:Help-en" title="Category:Help-en">Help-en</a></li></ul></div></div>
-        		<div class="visualClear"></div>
-
-        	</div>
-        </div>
-    </div>
+	</div>
 </template>
 
 <script>
