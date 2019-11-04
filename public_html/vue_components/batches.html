@@ -80,7 +80,7 @@ let BatchesPage = Vue.extend ( {
 			wikiUrl: ''
 		}
 	},
-    created : async function () {
+    created : function () {
     	var me = this ;
     	me.loadBatches () ;
     	me.interval = setInterval ( me.loadBatches , me.update_interval_ms ) ;

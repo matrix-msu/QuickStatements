@@ -34,12 +34,6 @@ let vue_components = {
 	injectComponent ( component, html ) {
 		if ( !html ) return;
 		let id = this.getComponentID ( component ) ;
-		// $(document).ready(function() {
-		// 	$('body').append($('<div>').attr({id: id}).css({display: 'none'}).html(html));
-		// });
-		
-		// $('body').append($('<div>').attr({id: id}).css({display: 'none'}).html(html));
-		
 		
 		let com = document.createElement('div');
 		com.setAttribute('id', id);
