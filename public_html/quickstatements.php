@@ -56,7 +56,7 @@ class QuickStatements {
 	public $temporary_batch_id ;
 	public $retry_on_database_lock = false ;
 	public $use_user_oauth_for_batch_edits = true ;
-	
+
 	protected $actions_v1 = array ( 'L'=>'label' , 'D'=>'description' , 'A'=>'alias' , 'S'=>'sitelink' ) ;
 	protected $is_batch_run = false ;
 	protected $user_name = '' ;
@@ -64,7 +64,7 @@ class QuickStatements {
 	protected $user_groups = array() ;
 	protected $db ;
 	protected $logging = true ;
-	
+
 	public function __construct () {
 		global $wikidata_api_url ;
 		$this->config = json_decode ( file_get_contents ( __DIR__ . '/config.json' ) ) ;
@@ -76,11 +76,11 @@ class QuickStatements {
 		$wikidata_api_url = $this->getSite()->api ;
 		$this->wd = new WikidataItemList () ;
 	}
-/*	
+/*
 	public function setBatchRun ( $is_batch ) {
 		$this->is_batch_run = $is_batch ;
 	}
-*/	
+*/
 
 	public function generateTemporaryBatchID () {
 		return '#temporary_batch_' . (round(microtime(true) * 1000)) ;
@@ -94,7 +94,7 @@ class QuickStatements {
 	protected function isBatchRun () {
 		return $this->is_batch_run ;
 	}
-	
+
 	public function getOA() {
 		if ( !isset($this->oa) ) {
 			$toolname = 'quickstatements' ; // TODO override with $this->toolname?
@@ -135,7 +135,7 @@ class QuickStatements {
 		}
 		return $ret ;
 	}
-	
+
 	public function importData ( $data , $format , $persistent = false ) {
 		$ret = array ( "status" => "OK" ) ;
 		$format = trim ( strtolower ( $format ) ) ;
@@ -145,7 +145,7 @@ class QuickStatements {
 		else $ret['status'] = "ERROR: Unknown format $format" ;
 		return $ret ;
 	}
-	
+
 	public function getCurrentUserID () {
 		$oa = $this->getOA() ;
 		$cr = $oa->getConsumerRights() ;
@@ -159,7 +159,7 @@ class QuickStatements {
 		if ( !$this->ensureCurrentUserInDB() ) return false ;
 		return $this->user_id ;
 	}
-	
+
 	public function addBatch ( $commands , $user_id , $name = '' , $site = '' ) {
 		if ( $site == '' ) $site = $this->config->site ;
 		if ( count($commands) == 0 ) return $this->setErrorMessage ( 'No commands' ) ;
@@ -171,16 +171,24 @@ class QuickStatements {
 		$batch_id = $db->insert_id ;
 		$sql = "INSERT INTO batch_oauth (batch_id,serialized) VALUES ($batch_id,'".$db->real_escape_string(serialize($this->getOA()))."')" ;
 		if(!$result = $db->query($sql)) $this->log( "Could not store OAuth information for batch {$batch_id} [{$db->error}]" );
+		$totalRows = 0;
 		foreach ( $commands AS $k => $c ) {
 			$cs = json_encode ( $c ) ;
 			if ( trim($cs) == '' ) continue ; // Paranoia
 			$status = 'INIT' ;
+			$rowNum = 1;
+			if ( isset($c->rowNum) ){
+				$rowNum = $c->rowNum;
+				if( $rowNum > $totalRows ){
+					$totalRows = $rowNum;
+				}
+			}
 			if ( isset($c->status) and trim($c->status) != '' ) $status = strtoupper(trim($c->status)) ;
-			$sql = "INSERT INTO command (batch_id,num,json,status,ts_change) VALUES ($batch_id,$k,'".$db->real_escape_string($cs)."','".$db->real_escape_string($status)."','$ts')" ;
+			$sql = "INSERT INTO command (batch_id,num,json,status,ts_change,row_num) VALUES ($batch_id,$k,'".$db->real_escape_string($cs)."','".$db->real_escape_string($status)."','$ts',$rowNum)" ;
 			//echo $sql;die;
 			if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
-		$sql = "UPDATE batch SET status='INIT' WHERE id=$batch_id" ;
+		$sql = "UPDATE batch SET status='INIT', total_rows=$totalRows WHERE id=$batch_id" ;
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		return $batch_id ;
 	}
@@ -200,18 +208,18 @@ class QuickStatements {
 	public function getToolBase () {
 	       return $this->getSite()->toolBase ;
 	}
-	
+
 	public function isUserBlocked ( $username ) {
 		$username = ucfirst ( str_replace ( ' ' , '_' , trim ( $username ) ) ) ;
 		$url = $this->getAPI() . "?action=query&list=blocks&format=json&bkusers=" . urlencode ( $username ) ;
 		$j = json_decode ( file_get_contents ( $url ) ) ;
 		foreach ( $j->query->blocks AS $b ) {
-			//if ( $username == $b->user ) 
+			//if ( $username == $b->user )
 			return true ; // We asked for a specific user, so if there is a value, it must be the user, right?
 		}
 		return false ;
 	}
-	
+
 	public function getUsernameFromBatchID ( $batch_id ) {
 		$db = $this->getDB() ;
 		$user_name = '' ;
@@ -220,13 +228,13 @@ class QuickStatements {
 		while ( $o = $result->fetch_object() ) $user_name = $o->name ;
 		return $user_name ;
 	}
-	
+
 	public function startBatch ( $batch_id ) {
 		$batch_id *= 1 ;
 		if ( isset ( $qs_global_bot_api ) ) unset ( $qs_global_bot_api ) ;
 		if ( isset ( $this->bot_api ) ) unset ( $this->bot_api ) ;
 		$db = $this->getDB() ;
-		
+
 		$user_name = $this->getUsernameFromBatchID ( $batch_id ) ;
 		if ( $user_name == '' ) return $this->setErrorMessage ( "Cannot determine user name for batch #" . $batch_id ) ;
 		if ( $this->isUserBlocked ( $user_name ) ) {
@@ -234,24 +242,145 @@ class QuickStatements {
 			$db->query($sql) ;
 			return $this->setErrorMessage ( "User:$user_name is blocked on Wikidata" ) ;
 		}
-		
+
 		$sql = "UPDATE batch SET status='RUN' WHERE id=$batch_id" ;
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		return true ;
 	}
-	
-	public function runNextCommandInBatch ( $batch_id ) {
+
+	public function runNextCommandInBatchFast ( $batch_id, $row_num=-1 ) {
+
 		echo 'in run func';
 		$db = $this->getDB() ;
 		var_dump($db);
 		echo $batch_id;
-		
+
 		$sql = "SELECT batch.last_item,user.id AS user_id,user.name AS user_name FROM batch,user WHERE batch.id=$batch_id AND user.id=batch.user" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
-		
+
+		echo 'after ';
+		$o = $result->fetch_object() ;
+		echo 'this is o:';
+		var_dump($o);
+		$this->last_item = $o->last_item ;
+		$this->user_id = $o->user_id ;
+		$this->user_name = $o->user_name ;
+		$ts = $this->getCurrentTimestamp() ;
+
+		$sql = "SELECT * FROM command WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$row_num ORDER BY num LIMIT 1" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		$o = $result->fetch_object() ;
+		if ( $o == NULL ) { // Nothing more to do
+			return false ;
+			$sql = "UPDATE batch SET status='DONE',last_item='',message='',ts_last_change='$ts' WHERE id=$batch_id" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+		}
+
+		// load OAuth, if available
+		if ( $this->use_user_oauth_for_batch_edits ) {
+			$sql = "SELECT serialized FROM batch_oauth WHERE batch_id=$batch_id" ;
+			if($result = $db->query($sql)) {
+				$oauth = $result->fetch_object() ;
+				if ( $oauth !== NULL ) {
+					//var_dump($oauth->serialized);
+					//die;
+					$oa = unserialize($oauth->serialized) ;
+					if ( $oa === false ) {
+						$this->log( "Could not unserialize OAuth information for batch $batch_id:\n".$oauth->serialized );
+						$this->use_oauth = false ;
+					} else {
+						$this->setOA( $oa ) ;
+					}
+				} else {
+					// no OAuth information for this batch – perfectly normal for older batches, don’t log
+					$this->use_oauth = false ;
+				}
+			} else {
+				$this->log( "Could not load OAuth information for batch $batch_id [" . $db->error . ']' );
+				$this->use_oauth = false ;
+			}
+		}
+
+		// Update status
+#if ( !isset($o->id) ) print_r ( $o ) ;
+		$sql = "UPDATE command SET status='RUN',ts_change='$ts',message='' WHERE num={$o->num}" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+
+		// Run command
+		$summary = "[[:toollabs:quickstatements/#/batch/{$batch_id}|batch #{$batch_id}]] by [[User:{$this->user_name}|]]" ;
+		$cmd = json_decode ( $o->json ) ;
+		if ( !isset($cmd->summary) ) $cmd->summary = $summary ;
+		else $cmd->summary .= '; ' . $summary ;
+#		$this->use_oauth = false ;
+		$this->runSingleCommand ( $cmd ) ;
+
+		// Update batch status
+		$db = $this->getDB() ;
+		$ts = $this->getCurrentTimestamp() ;
+		$sql = "UPDATE batch SET status='RUN',ts_last_change='$ts',last_item='{$this->last_item}' WHERE id=$batch_id AND status IN ('INIT','RUN')" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+
+		// Update command status
+		$status = strtoupper ( $cmd->status ) ;
+		$msg = isset($cmd->message) ? $cmd->message : '' ;
+		$message = '';
+		if( $msg != '' ){
+			$message = ",message='".$msg."'";
+		}
+		echo "command message:";
+		var_dump($msg);
+		$sql = "UPDATE command SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE num={$o->num}" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		// Batch done?
+		$sql = "SELECT count(*) AS cnt FROM command WHERE batch_id=$batch_id AND status NOT IN ('ERROR','DONE')" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		$o = $result->fetch_object() ;
+		if ( $o->cnt == 0 ) {
+			$sql = "UPDATE batch SET status='DONE',last_item=''".$message." WHERE id=$batch_id" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+			return false;
+		}
+
+		return true ;
+	}
+
+
+	public function runNextCommandInBatchSequential ( $batch_id ) {
+		echo 'in run func';
+		$db = $this->getDB() ;
+		var_dump($db);
+		echo $batch_id;
+
+		$sql = "SELECT batch.last_item,user.id AS user_id,user.name AS user_name FROM batch,user WHERE batch.id=$batch_id AND user.id=batch.user" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+
 		echo 'after ';
 		$o = $result->fetch_object() ;
 		echo 'this is o:';
@@ -321,11 +450,11 @@ class QuickStatements {
 		$db = $this->getDB() ;
 		$ts = $this->getCurrentTimestamp() ;
 		$sql = "UPDATE batch SET status='RUN',ts_last_change='$ts',last_item='{$this->last_item}' WHERE id=$batch_id AND status IN ('INIT','RUN')" ;
-		if(!$result = $db->query($sql)){ 
+		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
-		
+
 		// Update command status
 		$status = strtoupper ( $cmd->status ) ;
 		$msg = isset($cmd->message) ? $cmd->message : '' ;
@@ -339,7 +468,7 @@ class QuickStatements {
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
-		}		
+		}
 		// Batch done?
 		$sql = "SELECT count(*) AS cnt FROM command WHERE batch_id=$batch_id AND status NOT IN ('ERROR','DONE')" ;
 		if(!$result = $db->query($sql)){
@@ -354,9 +483,14 @@ class QuickStatements {
 				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 			}
 		}
-		
+
 		return true ;
+
 	}
+
+
+
+
 
 	public function getToken ( $user_name ) {
 		$db = $this->getDB() ;
@@ -371,7 +505,7 @@ class QuickStatements {
 	}
 
 	public function getUserIDfromNameAndToken ( $user_name , $token ) {
-		if ( !isset($token) or $token == '' ) return ; 
+		if ( !isset($token) or $token == '' ) return ;
 
 		$db = $this->getDB() ;
 		$user_name = trim ( preg_replace ( '/_/' , ' ' , $user_name ) ) ;
@@ -379,39 +513,39 @@ class QuickStatements {
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		while ( $o = $result->fetch_object() ) return $o->id*1 ;
 	}
-	
+
 	public function generateToken ( $user_name , $force_replace = false ) {
 		$user_name = trim ( str_replace ( '_' , ' ' , $user_name ) ) ;
-		
+
 		// Check existing token
 		if ( !$force_replace ) {
 			$token = $this->getToken ( $user_name ) ;
 			if ( $token != '' ) return $token ;
 		}
-		
+
 		// None to use, generate new one
 		$db = $this->getDB() ;
 		$token = password_hash ( rand() . $user_name . rand() . rand() , PASSWORD_DEFAULT ) ;
 		$token = substr ( $token , 0 , 60 ) ;
-		
+
 		$id = '' ;
 		$un = $db->real_escape_string($user_name) ;
 		$sql = "SELECT * FROM user WHERE name='$un'" ;
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		while ( $o = $result->fetch_object() ) $id = $o->id ;
-		
+
 		if ( $id == '' ) {
 			$sql = "INSERT INTO `user` (name,api_hash) VALUES ('$un','$token')" ;
 		} else {
 			$sql = "UPDATE `user` set api_hash='$token' WHERE id=$id" ;
 		}
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
-		
-		
-		
+
+
+
 		return $token ;
 	}
-	
+
 	// $batches : array of batch_id!
 	public function getBatchStatus ( $batches ) {
 		$ret = array() ;
@@ -425,7 +559,7 @@ class QuickStatements {
 			$batch_id = $o->id ;
 			$ret["$batch_id"] = array ( 'batch' => $o , 'commands' => array() ) ;
 		}
-		
+
 		$sql = "SELECT batch_id,status,count(*) AS cnt FROM command WHERE batch_id IN ($bl) GROUP BY batch_id,status" ;
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		while ( $o = $result->fetch_object() ) {
@@ -435,7 +569,7 @@ class QuickStatements {
 //			if ( !isset($ret->$batch_id->commands) ) $ret->$batch_id->commands = (object) array() ;
 			$ret["$batch_id"]['commands'][$status] = $o->cnt ;
 		}
-		
+
 		return $ret ;
 	}
 
@@ -457,16 +591,16 @@ class QuickStatements {
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		return true ;
 	}
-	
-	
-	
-	
+
+
+
+
 	protected function log ( $data ) {
 		if ( !$this->logging ) return ;
 		$out = $this->getCurrentTimestamp() . "\t" . json_encode ( $data ) . "\n" ;
 		file_put_contents ( $this->config->logfile , $out , FILE_APPEND ) ;
 	}
-	
+
 	protected function canCurrentUserChangeBatchStatus ( $batch_id ) {
 		if ( false === $this->getCurrentUserID() ) return $this->setErrorMessage ( "Not logged in" ) ;
 
@@ -477,23 +611,23 @@ class QuickStatements {
 
 //		if ( !isset($this->user_id) ) $this->user_id = $this->getCurrentUserID() ;
 		if ( $batch->user == $this->user_id ) return true ; // User who submitted the batch
-		
+
 		foreach ( $this->user_groups AS $k => $v ) {
 			if ( $v == 'administrator' ) return true ;
 		}
-		
+
 		return false ;
 	}
-	
+
 	protected function getCurrentTimestamp () {
 		return date ( 'YmdHis' ) ;
 	}
-	
+
 	protected function setErrorMessage ( $msg ) {
 		$this->last_error_message = $msg ;
 		return false ;
 	}
-	
+
 	protected function ensureCurrentUserInDB () {
 		$db = $this->getDB() ;
 		$sql = "INSERT IGNORE INTO user (id,name) VALUES ({$this->user_id},'".$db->real_escape_string($this->user_name)."')" ;
@@ -516,7 +650,7 @@ class QuickStatements {
 		}
 		return $command ;
 	}
-	
+
 	protected function createNewItem ( $command ) {
 		$data = '{}' ;
 		if ( isset($command->data) ) $data = json_encode ( $this->array2object ( $command->data ) ) ;
@@ -534,13 +668,13 @@ class QuickStatements {
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
-	
+
 	protected function isProperty ( $p ) {
 		if ( !isset($p) ) return false ;
 		if ( !preg_match ( '/^[P]\d+$/i' , $p ) ) return false ;
 		return true ;
 	}
-	
+
 	protected function getStatementID ( $command ) {
 		if ( !$this->isProperty ( $command->property ) ) return ;
 		if ( !isset($command->datavalue) ) return ;
@@ -556,7 +690,7 @@ class QuickStatements {
 			if ( $this->compareDatavalue ( $c->mainsnak->datavalue , $command->datavalue ) ) return $c->id ;
 		}
 	}
-	
+
 	// Return true if both datavalues are the same (for any given value of same...), or false otherwise
 	protected function compareDatavalue ( $d1 , $d2 ) {
 		if ( $d1->type != $d2->type ) return false ;
@@ -586,10 +720,10 @@ class QuickStatements {
 			if ( isset($d1->value->id) and isset($d2->value->id) AND $d1->value->id==$d2->value->id ) return true ;
 			return false ;
 		}
-		
+
 		return false ; // Can't determine type
 	}
-	
+
 	public function compressCommands ( $commands ) {
 		if ( !$this->use_command_compression ) return $commands ;
 		if ( count($commands) < 2 ) return $commands ; // Nothing to do
@@ -613,7 +747,7 @@ class QuickStatements {
 					$out[count($out)-1]['data']['sitelinks'][$site] = array ( 'site' => $site , 'title' => $commands[$pos]['value'] ) ;
 
 				} else if ( $commands[$pos]['what'] == 'statement' and isset($commands[$pos]['datavalue']) ) {
-				
+
 					$claim = array (
 						'mainsnak' => array (
 							'snaktype' => 'value' ,
@@ -626,18 +760,18 @@ class QuickStatements {
 
 					// BEGIN sources and qualifiers
 					$pos2 = $pos+1 ;
-					while ( $pos2 < count($commands) 
-						and $commands[$pos2]['action'] == 'add' 
-						and strtolower($commands[$pos2]['item']) == 'last' 
-						and in_array($commands[$pos2]['what'],array('qualifier','sources')) 
-						and $commands[$pos2]['property'] == $commands[$pos]['property'] 
+					while ( $pos2 < count($commands)
+						and $commands[$pos2]['action'] == 'add'
+						and strtolower($commands[$pos2]['item']) == 'last'
+						and in_array($commands[$pos2]['what'],array('qualifier','sources'))
+						and $commands[$pos2]['property'] == $commands[$pos]['property']
 						and isset ( $commands[$pos2]['datavalue'] )
 						and serialize($commands[$pos2]['datavalue']) == serialize($claim['mainsnak']['datavalue'])
 						) {
-					
+
 						if ( $commands[$pos2]['what'] == 'sources' ) {
 							if ( !isset($claim['references']) ) $claim['references'] = array(  ) ;
-						
+
 							$refs = array('snaks'=>array()) ;
 							foreach ( $commands[$pos2]['sources'] AS $s ) {
 								$source = array (
@@ -657,14 +791,14 @@ class QuickStatements {
 							) ;
 							$claim['qualifiers'][] = $qual ;
 						}
-					
+
 						$commands[$pos2] = 'SKIP' ;
 						$pos2++ ;
 					}
 					// END sources and qualifiers
 
 					$out[count($out)-1]['data']['claims'][] = $claim ;
-				
+
 				} else {
 					$out[] = $commands[$pos] ;
 				}
@@ -672,10 +806,10 @@ class QuickStatements {
 				$out[] = $commands[$pos] ;
 			}
 		}
-	
+
 		return $out ;
 	}
-	
+
 	protected function getSite () {
 		$site = $this->config->site ;
 		return $this->config->sites->$site ;
@@ -685,7 +819,7 @@ class QuickStatements {
 		if ( $this->bot_config_file != '' ) return parse_ini_file ( $this->bot_config_file ) ;
 		return parse_ini_file ( $this->config->bot_config_file ) ;
 	}
-	
+
 	protected function getBotAPI ( $force_login = false ) {
 		global $qs_global_bot_api ;
 		if ( !isset($this->bot_api) and isset($qs_global_bot_api) ) $this->bot_api = $qs_global_bot_api ;
@@ -705,9 +839,9 @@ class QuickStatements {
 		if ( !isset($qs_global_bot_api) ) $qs_global_bot_api = $api ;
 		$this->bot_api = $api ;
 		return $api ;
-		
+
 	}
-	
+
 	protected function runBotAction ( $params_orig , $attempts_left = 3 ) {
 		if ( $attempts_left <= 0 ) return false ;
 		$params = array() ;
@@ -716,7 +850,7 @@ class QuickStatements {
 		if ( !isset($params['action']) ) return false ;
 		$action = $params['action'] ;
 		unset ( $params['action'] ) ;
-		
+
 		$params['bot'] = 1 ;
 
 		$api = $this->getBotAPI() ;
@@ -740,7 +874,7 @@ class QuickStatements {
 		}
 		return true ;
 	}
-	
+
 	protected function runAction ( $params , &$command ) {
 		$params = (object) $params ;
 		$summary = '#quickstatements' ;
@@ -761,7 +895,7 @@ class QuickStatements {
 			$status = $this->runBotAction ( $params ) ;
 			if ( isset($this->last_result) ) $result = $this->last_result ;
 		}
-		
+
 		$command->run = $params ; // DEBUGGING INFO
 		if ( $status ) {
 			$command->status = 'done' ;
@@ -789,40 +923,40 @@ exit ( 1 ) ; // Force bot restart
 			} else $command->message = json_encode ( $result ) ;
 		}
 	}
-	
+
 	protected function getDatatypeForProperty ( $property ) {
 		$this->wd->loadItem ( $property ) ;
 		if ( !$this->wd->hasItem($property) ) return ;
 		$i = $this->wd->getItem ( $property ) ;
 		return $i->j->datatype ;
 	}
-	
+
 	protected function commandError ( $command , $message ) {
 		$command->status = 'error' ;
 		if ( isset($message) and $message != '' ) $command->message = $message ;
 		return $command ;
 	}
-	
+
 	protected function commandDone ( $command , $message ) {
 		$command->status = 'done' ;
 		if ( isset($message) and $message != '' ) $command->message = $message ;
 		return $command ;
 	}
-	
+
 	protected function getSnakType ( $datavalue ) {
 		if ( $datavalue->value == 'novalue' || $datavalue->value == 'somevalue' ) {
 			return $datavalue->value ;
 		}
 		return 'value' ;
 	}
-	
+
 	protected function getPrefixedID ( $q ) {
 		$q = trim ( strtoupper ( $q ) ) ;
 		// TODO generic
 		if ( preg_match ( '/^P\d+$/' , $q ) ) return "Property:$q" ;
 		return $q ;
 	}
-	
+
 	protected function commandAddStatement ( $command , $i , $statement_id ) {
 		// Paranoia
 		if ( isset($statement_id) ) return $this->commandDone ( $command , "Statement already exists as $statement_id" ) ;
@@ -842,7 +976,7 @@ exit ( 1 ) ; // Force bot restart
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
-	
+
 	protected function commandAddQualifier ( $command , $i , $statement_id ) {
 		// Paranoia
 		if ( !isset($command->qualifier) ) return $this->commandError ( $command , "Incomplete command parameters" ) ;
@@ -865,12 +999,12 @@ exit ( 1 ) ; // Force bot restart
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
-	
+
 	protected function commandAddSources ( $command , $i , $statement_id ) {
 		// Paranoia
 		if ( !isset($command->sources) ) return $this->commandError ( $command , "Incomplete command parameters" ) ;
 		if ( count($command->sources) == 0 ) return $this->commandError ( $command , "No sources to add" ) ;
-		
+
 		// Prep
 		$snaks = array() ;
 		foreach ( $command->sources AS $source ) {
@@ -894,11 +1028,11 @@ exit ( 1 ) ; // Force bot restart
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
-	
+
 	protected function commandSetLabel ( $command , $i ) {
 		// Paranoia
 		if ( $i->getLabel ( $command->language , true ) == $command->value ) return $this->commandDone ( $command , 'Already has that label for {$command->language}' ) ;
-		
+
 		// Execute!
 		$this->runAction ( array (
 			'action' => 'wbsetlabel' ,
@@ -911,10 +1045,10 @@ exit ( 1 ) ; // Force bot restart
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
-	
+
 	protected function commandAddAlias ( $command , $i ) {
 		// Paranoia TODO
-		
+
 		// Execute!
 		$this->runAction ( array (
 			'action' => 'wbsetaliases' ,
@@ -927,11 +1061,11 @@ exit ( 1 ) ; // Force bot restart
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
-	
+
 	protected function commandSetDescription ( $command , $i ) {
 		// Paranoia
 		if ( $i->getDesc ( $command->language , true ) == $command->value ) return $this->commandDone ( $command , 'Already has that description for {$command->language}' ) ;
-		
+
 		// Execute!
 		$this->runAction ( array (
 			'action' => 'wbsetdescription' ,
@@ -944,12 +1078,12 @@ exit ( 1 ) ; // Force bot restart
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
-	
+
 	protected function commandSetSitelink ( $command , $i ) {
 		// Paranoia
 		$sl = $i->getSitelink ( $command->site ) ;
 		if ( isset($sl) and str_replace(' ','_',$sl) == str_replace(' ','_',$command->value) ) return $this->commandDone ( $command , 'Already has that sitelink for {$command->site}' ) ;
-		
+
 		// Execute!
 		$this->runAction ( array (
 			'action' => 'wbsetsitelink' ,
@@ -962,12 +1096,12 @@ exit ( 1 ) ; // Force bot restart
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
-	
+
 	protected function commandRemoveStatement ( $command ) {
 		$id = $command->id ;
 		$q = strtoupper ( preg_replace ( '/\$.*$/' , '' , $id ) ) ;
 		$i = $this->wd->getItem ( $q ) ;
-		
+
 		// Execute!
 		$this->runAction ( array (
 			'action' => 'wbremoveclaims' ,
@@ -983,7 +1117,7 @@ exit ( 1 ) ; // Force bot restart
 		$command->value = '';
 		return $this->commandSetSitelink ( $command, $i );
 	}
-	
+
 	public function array2object_recursive($array) {
 		$obj = new stdClass;
 		foreach($array as $k => $v) {
@@ -996,14 +1130,14 @@ exit ( 1 ) ; // Force bot restart
 				}
 		}
 		return $obj;
-	} 
+	}
 
 	public function array2object ( $a ) {
 		$ret = json_decode ( json_encode ( $a ) ) ;
 		if ( isset($ret) ) return $ret ;
 		return $this->array2object_recursive ( $a ) ;
 	}
-	
+
 	public function runCommandArray ( $commands ) {
 		if ( $this->use_command_compression ) $commands = $this->compressCommands ( $commands ) ;
 		$this->is_batch_run = true ;
@@ -1018,7 +1152,7 @@ exit ( 1 ) ; // Force bot restart
 		}
 		$this->is_batch_run = false ;
 	}
-	
+
 	public function runSingleCommand ( $command ) {
 		if ( $this->sleep != 0 ) sleep ( $this->sleep ) ;
 		if ( !isset($command) ) return $this->commandError ( $command , "Empty command" ) ;
@@ -1046,7 +1180,7 @@ exit ( 1 ) ; // Force bot restart
 			$this->wd->loadItems ( $to_load ) ;
 			if ( !$this->wd->hasItem($q) ) return $this->commandError ( $command , "Item $q is not available" ) ;
 			$i = $this->wd->getItem ( $q ) ;
-			
+
 			if ( $command->action == 'add' ) {
 
 				// Do it
@@ -1066,9 +1200,9 @@ exit ( 1 ) ; // Force bot restart
 				if ( !isset($statement_id) ) return $this->commandError ( $command , "Base statement not found" ) ;
 				if ( $command->what == 'qualifier' ) return $this->commandAddQualifier ( $command , $i , $statement_id ) ;
 				if ( $command->what == 'sources' ) return $this->commandAddSources ( $command , $i , $statement_id ) ;
-				
+
 			} else if ( $command->action == 'remove' ) {
-			
+
 				if ( $command->what == 'statement' ) {
 					if ( !isset($command->id) ) $command->id = $this->getStatementID ( $command ) ;
 					if ( !isset($command->id) or $command->id == '' ) return $this->commandError ( $command , "Base statement not found" ) ;
@@ -1076,9 +1210,9 @@ exit ( 1 ) ; // Force bot restart
 				} else if ( $command->what == 'sitelink' ) {
 					return $this->commandRemoveSitelink ( $command, $i ) ;
 				}
-			
+
 			}
-			
+
 		}
 		return $this->commandError( $command, "Incomplete or unknown command" );
 	}
@@ -1106,15 +1240,20 @@ exit ( 1 ) ; // Force bot restart
 
 		return true ;
 	}
-	
-	
+
+
 	protected function importDataFromV1 ( $data , &$ret ) {
 		$ret['data']['commands'] = array() ;
 		if ( strpos ( $data , "\n" ) === false ) $data = str_replace ( '||' , "\n" , $data ) ;
 		if ( strpos ( $data , "\t" ) === false ) $data = str_replace ( '|' , "\t" , $data ) ;
 		$rows = explode ( "\n" , $data ) ;
 		//echo json_encode($rows);die;
+		$rowNum = 0;
+		$lastCreateRowNum = -1;
+		$editedQids = array();
+
 		foreach ( $rows as $row ) {
+			$rowNum++;
 			$row = trim ( $row ) ;
 			$comment = '' ;
 			if ( preg_match ( '/^(.*?) *\/\* *(.*?) *\*\/ *$/' , $row , $m ) ) { // Extract comment as summary
@@ -1129,14 +1268,24 @@ exit ( 1 ) ; // Force bot restart
 				$action = 'remove' ;
 				$cols[0] = $m[1] ;
 			}
-			if( isset($cols[1]) && substr( $cols[1], 0, 2 ) === 'DP' ){		
-				$cols[1] = ltrim($cols[1], 'D'); 		
+			if( isset($cols[1]) && substr( $cols[1], 0, 2 ) === 'DP' ){
+				$cols[1] = ltrim($cols[1], 'D');
 				$cols[2] = "CREATED-".$cols[2];
 			}
 			$first = strtoupper(trim($cols[0])) ;
 			if ( count ( $cols ) >= 3 and ( $this->isValidItemIdentifier($first) or $first == 'LAST' ) and $this->isValidItemIdentifier($cols[1]) ) {
+				$tmpRowNum = $rowNum;
+				if( $first == 'LAST' ){
+					$tmpRowNum = $lastCreateRowNum;
+				}else{
+					if(!isset($editedQids[$first])){
+						$editedQids[$first] = $rowNum;
+					}
+					$tmpRowNum = $editedQids[$first];
+				}
+
 				$prop = strtoupper(trim($cols[1])) ;
-				$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>'statement' ) ;
+				$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>'statement', 'rowNum' => $tmpRowNum ) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
 				$this->parseValueV1 ( $cols[2] , $cmd ) ;
 
@@ -1144,7 +1293,7 @@ exit ( 1 ) ; // Force bot restart
 				array_shift ( $cols ) ;
 				array_shift ( $cols ) ;
 				array_shift ( $cols ) ;
-				
+
 				// Add qualifiers and sources
 				while ( count($cols) >= 2 ) {
 					$key = array_shift ( $cols ) ;
@@ -1153,13 +1302,13 @@ exit ( 1 ) ; // Force bot restart
 					if ( preg_match ( '/^([SP])(\d+)$/i' , $key , $m ) ) {
 						$what = $m[1] == 'S' ? 'sources' : 'qualifier' ;
 						$num = $m[2] ;
-						
+
 						// Store previous one, and reset
 						if ( !$skip_add_command ) $ret['data']['commands'][] = $cmd ;
 						$skip_add_command = false ;
 						$last_command = $ret['data']['commands'][count($ret['data']['commands'])-1] ;
-						
-						$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>$what , 'datavalue'=>$last_command['datavalue'] ) ;
+
+						$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>$what , 'datavalue'=>$last_command['datavalue'], 'rowNum' => $tmpRowNum ) ;
 						$dummy = array() ;
 						$this->parseValueV1 ( $value , $dummy ) ; // TODO transfer error message
 						$dv = array ( 'prop' => 'P'.$num , 'value' => $dummy['datavalue'] ) ;
@@ -1177,7 +1326,16 @@ exit ( 1 ) ; // Force bot restart
 			} else if ( count ( $cols ) === 3 and ( $this->isValidItemIdentifier($first) or $first == 'LAST' ) and preg_match ( '/^([LADS])([a-z_-]+)$/i' , $cols[1] , $m ) ) {
 				$code = strtoupper ( $m[1] ) ;
 				$lang = strtolower ( trim ( $m[2] ) ) ;
-				$cmd = array ( 'action'=>$action , 'what'=>$this->actions_v1[$code] , 'item'=>$first ) ;
+				$tmpRowNum = $rowNum;
+				if( $first == 'LAST' ){
+					$tmpRowNum = $lastCreateRowNum;
+				}else{
+					if(!isset($editedQids[$first])){
+						$editedQids[$first] = $rowNum;
+					}
+					$tmpRowNum = $editedQids[$first];
+				}
+				$cmd = array ( 'action'=>$action , 'what'=>$this->actions_v1[$code] , 'item'=>$first, 'rowNum' => $tmpRowNum ) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
 				if ( $code == 'S' ) $cmd['site'] = $lang ;
 				else $cmd['language'] = $lang ;
@@ -1192,7 +1350,7 @@ exit ( 1 ) ; // Force bot restart
 				$q1 = $cols[1] ;
 				$q2 = $cols[2] ;
 				if ( preg_replace('/\D/','',$q1)*1 < preg_replace('/\D/','',$q2)*1 ) list($q1,$q2) = [$q2,$q1] ; // Always merge into older item
-				$cmd = array ( 'action'=>'merge' , 'type'=>'item' , 'item1' => $q1 , 'item2' => $q2 ) ;
+				$cmd = array ( 'action'=>'merge' , 'type'=>'item' , 'item1' => $q1 , 'item2' => $q2, 'rowNum' => $rowNum ) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
 			} else if ( strpos($first, 'CREATE-') === 0 || strpos($first, 'CREATE') === 0 ){ //$first == 'CREATE' ) {
 				if( strpos($first, 'CREATE-') === 0 ){
@@ -1200,11 +1358,12 @@ exit ( 1 ) ; // Force bot restart
 				}else{
 					$value22 = '';
 				}
-				$cmd = array ( 'action'=>'create' , 'type'=>'item', 'create-id'=>  $value22) ;
+				$lastCreateRowNum = $rowNum;
+				$cmd = array ( 'action'=>'create' , 'type'=>'item', 'create-id'=>$value22, 'rowNum' => $rowNum) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
 			} else if ( $first == 'STATEMENT' and count($cols) == 2 ) {
 				$id = trim ( $cols[1] ) ;
-				$cmd = array ( 'action'=>$action , 'what'=>'statement' , 'id'=>$id ) ;
+				$cmd = array ( 'action'=>$action , 'what'=>'statement' , 'id'=>$id, 'rowNum' => $rowNum ) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
 			}
 
@@ -1267,7 +1426,7 @@ exit ( 1 ) ; // Force bot restart
                 if ( $instruction[0] === 'P' || substr( $instruction, 0, 2 ) === 'DP' ) {
 					if( ssubstr( $instruction, 0, 2 ) === 'DP' ){
 						$value = "CREATE=".$value;
-						$instruction = ltrim($instruction, 'D'); 
+						$instruction = ltrim($instruction, 'D');
 					}
                     $command += [
                         'what' => 'statement',
@@ -1356,8 +1515,8 @@ exit ( 1 ) ; // Force bot restart
         }
         fclose( $stream );
     }
-	
-	
+
+
 	protected function getEntityType ( $q ) {
 		$q = strtoupper ( trim ( $q ) ) ;
 		if ( preg_match ( '/^Q\d+$/' , $q ) ) return 'item' ;
@@ -1372,7 +1531,7 @@ exit ( 1 ) ; // Force bot restart
 	protected function convertToUTF8($text){
 		$encoding = mb_detect_encoding($text, mb_detect_order(), false);
 		if ( $encoding == "UTF-8" ) {
-			$text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');    
+			$text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
 		}
 		$ret = iconv(mb_detect_encoding($text, mb_detect_order(), false), "UTF-8//IGNORE", $text);
 		return $ret;
@@ -1382,10 +1541,10 @@ exit ( 1 ) ; // Force bot restart
 		return $this->convertToUTF8($s) ;
 #		return @iconv('UTF-8', 'UTF-8//IGNORE', $s) ;
 	}
-	
+
 	protected function parseValueV1 ( $v , &$cmd ) {
 		$v = trim ( $v ) ;
-		
+
 		if ( $v == 'somevalue' || $v == 'novalue' ) {
 			$cmd['datavalue'] = array ( "value"=>$v, "type"=>$v ) ;
 			return true ;
@@ -1395,14 +1554,14 @@ exit ( 1 ) ; // Force bot restart
 			$cmd['datavalue'] = array ( "type"=>"wikibase-entityid" , "value"=>array("entity-type"=>"item", "id"=>"LAST") ) ;
 			return true ;
 		}
-		
-		
+
+
 
 		if ( preg_match ( '/^(?:[PQL]\d+|L\d+-[FS]\d+)$/i' , $v ) ) { // ENTITY TODO generic
 			$cmd['datavalue'] = array ( "type"=>"wikibase-entityid" , "value"=>array("entity-type"=>$this->getEntityType($v),"id"=>strtoupper($v)) ) ;
 			return true ;
 		}
-		
+
 		if ( preg_match ( '/^"(.*)"$/i' , $v , $m ) ) { // STRING
 			$cmd['datavalue'] = array ( "type"=>"string" , "value"=>trim($this->enforceStringEncoding($m[1])) ) ;
 			return true ;
@@ -1426,7 +1585,7 @@ exit ( 1 ) ; // Force bot restart
 			) ) ;
 			return true ;
 		}
-		
+
 		if ( preg_match ( '/^\@\s*([+-]{0,1}[0-9.]+)\s*\/\s*([+-]{0,1}[0-9.]+)$/i' , $v , $m ) ) { // GPS
 			$cmd['datavalue'] = array ( "type"=>"globecoordinate" , "value"=>array(
 				'latitude' => $m[1]*1 ,
@@ -1436,7 +1595,7 @@ exit ( 1 ) ; // Force bot restart
 			) ) ;
 			return true ;
 		}
-		
+
 		if ( preg_match ( '/^([\+\-]{0,1}\d+(\.\d+){0,1})(U(\d+)){0,1}$/' , $v , $m ) ) { // Quantity
 			echo json_encode(array('quantity match', $v, $m));
 			die;
@@ -1457,18 +1616,18 @@ exit ( 1 ) ; // Force bot restart
 			) ) ;
 			return true ;
 		}
-		
+
 		if ( strpos($v, 'CREATED-') == 0 ){
 			$value = explode('CREATED-', $v)[1];
 			$cmd['datavalue'] = array ( "type"=>"wikibase-entityid" , "value"=>array("entity-type"=>"created","id"=>$value) ) ;
 			return true ;
 		}
-		
-		
+
+
 		$cmd['datavalue'] = array ( "type"=>"unknown" , "text"=>$v ) ;
 		$cmd['error'] = array('PARSE','Unknown V1 value format') ;
 	}
-	
+
 } ;
 
 ?>

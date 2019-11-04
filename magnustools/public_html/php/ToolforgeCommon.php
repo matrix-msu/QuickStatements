@@ -31,18 +31,18 @@ final class ToolforgeCommon {
 			'slow' => '.analytics.db.svc.eqiad.wmflabs' ,
 			'old' => '.labsdb'
 		] ;
-	
+
 	private $cookiejar ; # For doPostRequest
 	private/*string*/  $mysql_user , $mysql_password ;
 	private $db_cache = [] ;
-	
+
 	public function __construct ( /*string*/ $toolname = '' ) {
 		if ( $toolname != '' ) $this->toolname = $toolname ;
 		else $this->toolname = $this->determineToolname() ;
 		assert ( $this->toolname != '' , 'Toolname is empty' ) ;
 		ini_set('user_agent','Toolforge - '.$this->toolname); # Fake user agent
 	}
-	
+
 	private function determineToolname () /*:string*/ {
 		$toolname = basename($_SERVER["SCRIPT_FILENAME"], '.php') ;
 		if ( $toolname == '' or $toolname == 'index' or preg_match ( '/^api/' , $toolname ) ) {
@@ -59,13 +59,13 @@ final class ToolforgeCommon {
 		if ( isset ( $_REQUEST[$key] ) ) return str_replace ( "\'" , "'" , $_REQUEST[$key] ) ;
 		return $default ;
 	}
-	
+
 	function urlEncode ( $t ) /*:string*/ {
 		$t = str_replace ( " " , "_" , $t ) ;
 		$t = urlencode ( $t ) ;
 		return $t ;
 	}
-	
+
 	function escapeAttribute ( $s ) /*:string*/ {
 		$ret = preg_replace ( "/\"/" , '&quot;' , $s ) ;
 		$ret = preg_replace ( "/'/" , '&apos;' , $ret ) ;
@@ -157,7 +157,7 @@ final class ToolforgeCommon {
 	private function getDBpassword () /*:string*/ {
 		if ( isset ( $this->tool_user_name ) and $this->tool_user_name != '' ) $user = $this->tool_user_name ;
 		else $user = str_replace ( 'tools.' , '' , get_current_user() ) ;
-		$passwordfile = '/matrix/dev/public_html/enslaved-quickstatements/magnustools/users/' . $user . '/replica.my.cnf' ;
+		$passwordfile = '/home/christj2/website/enslaved-quickstatements/magnustools/users/' . $user . '/replica.my.cnf' ;
 		//if ( $user == 'magnus' ) $passwordfile = '/home/' . $user . '/replica.my.cnf' ; // Command-line usage
 		$config = parse_ini_file( $passwordfile );
 		if ( isset( $config['user'] ) ) {
@@ -176,9 +176,9 @@ final class ToolforgeCommon {
 		else $dbname = $force_user.$dbname;
 		if ( $server == '' ) $server = "tools.labsdb" ; //"tools-db" ;
 		if ( $persistent ) $server = "p:$server" ;
-		$server = "rush.matrix.msu.edu";
-		$dbname = "arcs_dev";
-        $this->mysql_user = "arcs_dev";
+		$server = "localhost";
+		$dbname = "quickstatements";
+        $this->mysql_user = "quickstatements";
 //		var_dump(array($server, $this->mysql_user, $this->mysql_password , $dbname));
 //		die;
 		$db = @new mysqli($server, $this->mysql_user, $this->mysql_password , $dbname);
@@ -196,7 +196,7 @@ final class ToolforgeCommon {
 	public function openDB ( $language , $project , $slow_queries = false , $persistent = false ) {
 		$db_key = "$language.$project" ;
 		if ( !$persistent and isset ( $this->db_cache[$db_key] ) ) return $this->db_cache[$db_key] ;
-	
+
 		$this->getDBpassword() ;
 		$dbname = $this->getDBname ( $language , $project ) ;
 
@@ -210,7 +210,7 @@ final class ToolforgeCommon {
 			sleep ( $seconds ) ;
 			return $this->openDB ( $language , $project , $slow_queries , $persistent ) ;
 		}
-	
+
 		# Try the other server
 		if($db->connect_errno > 0 ) {
 			$server = substr( $dbname, 0, -2 ) . ( $slow_queries ? $this->db_servers['fast'] : $this->db_servers['slow'] ) ;
@@ -224,7 +224,7 @@ final class ToolforgeCommon {
 			if ( $persistent ) $server = "p:$server" ;
 			$db = @new mysqli($server, $this->mysql_user, $this->mysql_password , $dbname);
 		}
-	
+
 		assert ( $db->connect_errno == 0 , 'Unable to connect to database [' . $db->connect_error . ']' ) ;
 		if ( !$persistent and $this->use_db_cache ) $this->db_cache[$db_key] = $db ;
 		return $db ;
@@ -297,7 +297,7 @@ final class ToolforgeCommon {
 		$dir = __DIR__ . '/../resources/html' ;
 		$f1 = file_get_contents ( "$dir/index_bs4.html" ) ;
 		$f2 = file_get_contents ( "$dir/menubar_bs4.html" ) ;
-		
+
 		assert ( isset($f1) and $f1 != '' ) ;
 		assert ( isset($f2) and $f2 != '' ) ;
 
@@ -310,7 +310,7 @@ final class ToolforgeCommon {
 
 	public function getCommonHeader ( $title = '' , $p = [] ) /*:string*/ {
 		if ( $title == '' ) $title = ucfirst ( strtolower ( $this->toolname ) ) ;
-		
+
 		if ( !headers_sent() ) {
 			header('Content-type: text/html; charset=UTF-8'); // UTF8 test
 			header("Cache-Control: no-cache, must-revalidate");
@@ -319,11 +319,11 @@ final class ToolforgeCommon {
 		if ( isset ( $p['style'] ) ) $s = str_replace ( '</style>' , $p['style'].'</style>' , $s ) ;
 		if ( isset ( $p['script'] ) ) $s = str_replace ( '</script>' , $p['script'].'</script>' , $s ) ;
 		if ( isset ( $p['title'] ) ) $s = str_replace ( '</head>' , "<title>{$p['title']}</title></head>" , $s ) ;
-	
+
 		$misc = '' ;
 		if ( isset ( $p['link'] ) ) $misc .= $p['link'] ;
 		$s = str_replace ( '<!--header_misc-->' , $misc , $s ) ;
-	
+
 		$s = str_replace ( '$$TITLE$$' , $title , $s ) ;
 		return $s ;
 	}
@@ -355,15 +355,15 @@ final class ToolforgeCommon {
 	// Takes an array KEY=>URL, returns an array KEY=>PAGE_CONTENT
 	public function getMultipleURLsInParallel ( $urls , $batch_size = 50 ) {
 		$ret = [] ;
-	
+
 		$batches = [ [] ] ;
 		foreach ( $urls AS $k => $v ) {
 			if ( count($batches[count($batches)-1]) >= $batch_size ) $batches[] = [] ;
 			$batches[count($batches)-1][$k] = $v ;
 		}
-	
+
 		foreach ( $batches AS $batch_urls ) {
-	
+
 			$mh = curl_multi_init();
 			curl_multi_setopt  ( $mh , CURLMOPT_PIPELINING , 1 ) ;
 		//	curl_multi_setopt  ( $mh , CURLMOPT_MAX_TOTAL_CONNECTIONS , 5 ) ;
@@ -378,20 +378,20 @@ final class ToolforgeCommon {
 				curl_setopt($ch[$key], CURLOPT_SSL_VERIFYHOST, false);
 				curl_multi_add_handle($mh,$ch[$key]);
 			}
-	
+
 			do {
 				curl_multi_exec($mh, $running);
 				curl_multi_select($mh);
 			} while ($running > 0);
-	
+
 			foreach(array_keys($ch) as $key){
 				$ret[$key] = curl_multi_getcontent($ch[$key]) ;
 				curl_multi_remove_handle($mh, $ch[$key]);
 			}
-	
+
 			curl_multi_close($mh);
 		}
-	
+
 		return $ret ;
 	}
 
@@ -422,13 +422,13 @@ final class ToolforgeCommon {
 
 		$url = "https://query.wikidata.org/sparql?format=json&query=" . urlencode($sparql) ;
 		$fc = @file_get_contents ( $url , false , $ctx ) ;
-	
+
 		// Catch "wait" response, wait 5, retry
 		if ( preg_match ( '/429/' , $http_response_header[0] ) ) {
 			sleep ( 5 ) ;
 			return $this->getSPARQL ( $cmd ) ;
 		}
-		
+
 		assert ( $fc !== false , 'SPARQL query failed: '.$sparql ) ;
 
 		if ( $fc === false ) return ; // Nope
