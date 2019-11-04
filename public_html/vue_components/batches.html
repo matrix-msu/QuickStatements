@@ -20,7 +20,7 @@
 				</td>
 				<td>
 					<div>
-						<a :href='"https://www.wikidata.org/wiki/User:"+b.batch.user_name' class='wikidata' target="_blank">{{b.batch.user_name}}</a>
+						<a :href='wikiUrl+b.batch.user_name' class='wikidata' target="_blank">{{b.batch.user_name}}</a>
 					</div>
 					<div v-if='b.batch.user_name!=user.getUserName()'>
 						[<router-link :to='"/batches/"+b.batch.user_name' tt='batches'></router-link>]
@@ -44,9 +44,9 @@
 					{{formatDate(b.batch.ts_last_change)}}
 				</td>
 				<td style='display:flex;flex-direction:row'>
-					<div>
+					<!-- <div>
 						<a target='_blank' class='btn btn-outline-dark' :href='"https://tools.wmflabs.org/editgroups/b/QSv2/"+b.batch.id' tt='revert_batch'></a>
-					</div>
+					</div> -->
 					<div v-if='(b.batch.status=="RUN"||b.batch.status=="INIT") && userCanStopBatch(b.batch)'>
 						<button class='btn btn-outline-danger' tt='stop' @click='stopBatch(b)'></button>
 					</div>
@@ -65,23 +65,54 @@
 
 let BatchesPage = Vue.extend ( {
     props : ['user_name'] ,
-    data : function () { return { batches:{} , status_class:{
-    	INIT:'primary',
-    	DONE:'success',
-    	ERROR:'danger',
-    	RUN:'info'
-    } , working:false , interval:'' , update_interval_ms:5000 } } ,
-    created : function () {
+    data : () => {
+		return { 
+			batches:{},
+			status_class:{
+		    	INIT:'primary',
+		    	DONE:'success',
+		    	ERROR:'danger',
+		    	RUN:'info'
+    		},
+			working:false,
+			interval:'',
+			update_interval_ms:5000,
+			wikiUrl: ''
+		}
+	},
+    created : async function () {
     	var me = this ;
     	me.loadBatches () ;
     	me.interval = setInterval ( me.loadBatches , me.update_interval_ms ) ;
     } ,
     updated : function () { tt.updateInterface(this.$el) ; } ,
-    mounted : function () { tt.updateInterface(this.$el) ; } ,
+    mounted : function () { 
+		fetch('config.json')
+		.then(res => res.json())
+		.then(data => {
+			this._data.wikiUrl = data.sites.wikidata.pageBase
+		});
+		
+		tt.updateInterface(this.$el);
+	} ,
     beforeDestroy : function () { clearInterval ( this.interval ) } ,
     methods : {
     	formatDate : function ( d ) {
-    		return d.substr(0,4)+'-'+d.substr(4,2)+'-'+d.substr(6,2)+' '+d.substr(8,2)+':'+d.substr(10,2)+':'+d.substr(12,2) ;
+			var meridium = 'am';
+			var year = d.split(' ')[0].split('-')[0];
+			year = year.substring(2);
+			var month = d.split(' ')[0].split('-')[1];
+			var date = d.split(' ')[0].split('-')[2];
+			var hours = d.split(' ')[1].split(':')[0];
+			var minutes = d.split(' ')[1].split(':')[1];
+			var seconds = d.split(' ')[1].split(':')[2];
+			
+			if (hours >= 12) {
+				meridium = 'pm';
+				hours -= 12;
+			}
+			
+			return `${month}-${date}-${year} ${hours}:${minutes}:${seconds} ${meridium}`
     	} ,
     	stopBatch : function ( b ) {
     		var me = this ;
