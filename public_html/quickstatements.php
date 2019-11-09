@@ -206,7 +206,7 @@ class QuickStatements {
 	}
 
 	public function getToolBase () {
-	       return $this->getSite()->toolBase ;
+		return $this->getSite()->toolBase ;
 	}
 
 	public function isUserBlocked ( $username ) {
@@ -370,10 +370,10 @@ class QuickStatements {
 
 
 	public function runNextCommandInBatchSequential ( $batch_id ) {
-		echo 'in run func';
+		// echo 'in run func';
 		$db = $this->getDB() ;
-		var_dump($db);
-		echo $batch_id;
+		// var_dump($db);
+		// echo $batch_id;
 
 		$sql = "SELECT batch.last_item,user.id AS user_id,user.name AS user_name FROM batch,user WHERE batch.id=$batch_id AND user.id=batch.user" ;
 		if(!$result = $db->query($sql)){
@@ -381,10 +381,10 @@ class QuickStatements {
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
 
-		echo 'after ';
+		// echo 'after ';
 		$o = $result->fetch_object() ;
-		echo 'this is o:';
-		var_dump($o);
+		// echo 'this is o:';
+		// var_dump($o);
 		$this->last_item = $o->last_item ;
 		$this->user_id = $o->user_id ;
 		$this->user_name = $o->user_name ;
@@ -462,8 +462,8 @@ class QuickStatements {
 		if( $msg != '' ){
 			$message = ",message='".$msg."'";
 		}
-		echo "command message:";
-		var_dump($msg);
+		// echo "command message:";
+		// var_dump($msg);
 		$sql = "UPDATE command SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE num={$o->num}" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;

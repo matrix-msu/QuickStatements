@@ -27,65 +27,57 @@ function iterate() {
 }
 
 function checkAndRunSingleBatch(){
-	if ( (isset($argv[1]) and $argv[1] == 'single_batch') || isset($_GET['single_batch']) ) {
-		$min_sec_inactive = 60 * 60 ; # 1h
-		$min_sec_inactive = 10 ; # start batches after 30 seconds
+	if ( isset($_GET['single_batch']) && isset($_GET['id']) ) {
 		$qs = new QuickStatements ;
-		$db = $qs->getDB() ;
-		$sql = "SELECT * FROM batch WHERE status IN ('INIT','RUN') ORDER BY ts_last_change LIMIT 1" ;
-		if(!$result = $db->query($sql)) die('There was an error running the query [' . $db->error . ']');
-		$o = $result->fetch_object() ;
-		if ( !$o ) {
-			echo 'no batches';
-			return 0 ; # No batches left
-		}
-		$ts_last_change = $o->ts_last_change ;
-		if ( !preg_match ( '/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/' , $ts_last_change , $m ) ) die ( "Bad time format in ts_last_change batch #{$o->id}\n" ) ;
-		$ts_last_change = $m[1].'-'.$m[2].'-'.$m[3].' '.$m[4].':'.$m[5].':'.$m[6] ;
-		$diff_sec = time() - strtotime ( $ts_last_change ) ;
-	#print "{$ts_last_change}\n{$diff_sec}\n" ;
-		//var_dump($diff_sec);die;
-		if ( $diff_sec < $min_sec_inactive ) return 0; # Oldest batch is still too young
-		//print "Using {$o->id}\n" ;
+		$db = $qs->getDB();
 
-		if ( $o->status == 'INIT' ) {
-			if ( !$qs->startBatch ( $o->id ) ) {
+		$sql = "SELECT * FROM batch WHERE id = " . $_GET['id'];
+		$query = $db->query($sql);
+		$result = $query->fetch_object();
+		
+		if (!$result) {
+			echo('Error: Specified id from URL parameter does not exist in the database.<br>');
+			die;
+		}
+
+		if ( $result->status == 'INIT' || $result->status == 'STOP') {
+			// sets the batch status to RUN
+			if ( !$qs->startBatch($result->id) ) {
 				echo 'died';
-				print "{$o->id}: " . $qs->last_error_message."\n" ;
+				print "{$result->id}: " . $qs->last_error_message."\n" ;
 				return 0;
 			}
+		} else if ($result->status == 'DONE') {
+			echo('Error: The specified batch id "'. $_GET['id'] .'" has already been processed (has a status of STOP).');
+			die;
 		}
-		while ( 1 ) {
-			$qs2 = new QuickStatements ;
-		//	var_dump($qs2);
-		//	echo '<br>before run command<br>';
-			if ( !$qs2->runNextCommandInBatchSequential ( $o->id ) )return 0 ;
-		//	echo '<br>after run command<br>';
-			$status = $qs2->getBatchStatus ( [$o->id] ) ;
-			if ( $status[$o->id]['batch']->status != 'RUN' ) return 1 ;
+		
+		while(1) {
+			$qs2 = new QuickStatements;
+			
+			if ( !$qs2->runNextCommandInBatchSequential($result->id) )
+				return 0;
+			
+			$status = $qs2->getBatchStatus( [$result->id] );
+			
+			if ( $status[$result->id]['batch']->status != 'RUN' )
+				return 1;
 		}
 
-		//exit ( 0 ) ;
 		return 1;
-	}
-	echo 'no single batch set';die;
-}
-
-$count = 0;
-//echo 'hi';die;
-while ( 1 ) {
-	if( $count == 10 ){
-		echo "kept the bot alive for 10 tries";
+	} else {
+		echo '<br>';
+		if (!isset($_GET['single_batch']))
+			echo 'Error: "single_batch" URL parameter is not set.<br>';
+		if (!isset($_GET['id']))
+			echo 'Error: "id" URL parameter is not set.<br>';
 		die;
 	}
-	$count++;
-	//$worked = iterate() ;
-	$worked = checkAndRunSingleBatch() ;
-	echo 'worked: '.$worked;
-	if ( $worked == 0 ) sleep ( 5 ) ;
-	else if ( $worked == 1 ){
-		echo 'Finished a batch. Stopping the bot.';die;
-	}else sleep ( 1 ) ;
+}
+
+$worked = checkAndRunSingleBatch();
+if ($worked == 1) {
+	echo('Finished a batch. Stopping the bot.');
 }
 
 ?>

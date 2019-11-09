@@ -37,14 +37,14 @@ div.create_batch_box > div {
 						</a>
 						[<router-link :to='"/batches/"+meta.batch.user_name' tt='batches'></router-link>]
 					</div>
-					<div v-if='(meta.commands.DONE||0)>0'>
+					<!-- <div v-if='(meta.commands.DONE||0)>0'>
 						<span v-if='meta.batch.id==0'>
 							<a target='_blank' class='external' :href='"https://tools.wmflabs.org/editgroups/b/QSv2T/"+encodeURIComponent(run.temp_id.replace(/\D/g,""))' tt='revert_batch'></a>
 						</span>
 						<span v-else>
 							<a target='_blank' class='external' :href='"https://tools.wmflabs.org/editgroups/b/QSv2/"+meta.batch.id' tt='revert_batch'></a>
 						</span>
-					</div>
+					</div> -->
 					<div style='flex-grow:1'></div>
 				</div>
 				<div class='batch_status_header'>
@@ -274,11 +274,13 @@ let BatchPage = Vue.extend ( {
             return false ;
         } ,
 		startBotSequential : function () {
+			var me = this;
+			
 			console.log('start bot seq')
 			$('.btn-bot-start').hide();
 			 //var handle =window.open('../bot.php?single_batch=1',
 			$.ajax({
-				url: "../bot.php?single_batch=1",
+				url: `../bot.php?single_batch=1&id=${me.meta.batch.id}`,
 				success: function(result){
 					console.log('start bot seq suc');
 					console.log(result);
@@ -291,7 +293,7 @@ let BatchPage = Vue.extend ( {
 			console.log('start bot fast')
 			$('.btn-bot-start').hide();
 			$.ajax({
-				url: "../bot_fast.php?single_batch=1",
+				url: `../bot_fast.php?single_batch=1&id=${me.meta.batch.id}`,
 				success: function(result){
 					console.log('start bot fast suc');
 					console.log(result);
