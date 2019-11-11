@@ -34,7 +34,7 @@ function checkAndRunSingleBatch(){
 		
 		// echo 'before bot spawn<br><br><br>';
 
-		$max_num_bots = 80;
+		$max_num_bots = 40;
 		if( $max_num_bots > $result->total_rows ){
 			$max_num_bots = $result->total_rows;
 		}
