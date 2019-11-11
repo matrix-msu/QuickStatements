@@ -290,6 +290,8 @@ let BatchPage = Vue.extend ( {
 			// handle.blur();
 		},
 		startBotFast : function () {
+			var me = this;
+			
 			console.log('start bot fast')
 			$('.btn-bot-start').hide();
 			$.ajax({

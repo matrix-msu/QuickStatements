@@ -48,7 +48,7 @@ function checkAndRunSingleBatch(){
 				return 0;
 			}
 		} else if ($result->status == 'DONE') {
-			echo('Error: The specified batch id "'. $_GET['id'] .'" has already been processed (has a status of STOP).');
+			echo('Error: The specified batch id "'. $_GET['id'] .'" has already been processed (has a status of DONE).');
 			die;
 		}
 		
