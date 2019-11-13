@@ -291,8 +291,6 @@ class QuickStatements {
 			if($result = $db->query($sql)) {
 				$oauth = $result->fetch_object() ;
 				if ( $oauth !== NULL ) {
-					//var_dump($oauth->serialized);
-					//die;
 					$oa = unserialize($oauth->serialized) ;
 					if ( $oa === false ) {
 						$this->log( "Could not unserialize OAuth information for batch $batch_id:\n".$oauth->serialized );
@@ -311,8 +309,7 @@ class QuickStatements {
 		}
 
 		// Update status
-#if ( !isset($o->id) ) print_r ( $o ) ;
-		$sql = "UPDATE command SET status='RUN',ts_change='$ts',message='' WHERE num={$o->num}" ;
+		$sql = "UPDATE command SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND num={$o->num}" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -323,9 +320,9 @@ class QuickStatements {
 		$cmd = json_decode ( $o->json ) ;
 		if ( !isset($cmd->summary) ) $cmd->summary = $summary ;
 		else $cmd->summary .= '; ' . $summary ;
-#		$this->use_oauth = false ;
+		$this->use_oauth = false ;
 		$this->runSingleCommand ( $cmd ) ;
-
+		
 		// Update batch status
 		$db = $this->getDB() ;
 		$ts = $this->getCurrentTimestamp() ;
@@ -344,7 +341,7 @@ class QuickStatements {
 		}
 		echo "command message:";
 		var_dump($msg);
-		$sql = "UPDATE command SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE num={$o->num}" ;
+		$sql = "UPDATE command SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE batch_id=$batch_id AND num={$o->num}" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -380,11 +377,12 @@ class QuickStatements {
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
+		
+		
 
 		// echo 'after ';
 		$o = $result->fetch_object() ;
-		// echo 'this is o:';
-		// var_dump($o);
+		
 		$this->last_item = $o->last_item ;
 		$this->user_id = $o->user_id ;
 		$this->user_name = $o->user_name ;
@@ -396,6 +394,7 @@ class QuickStatements {
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
 		$o = $result->fetch_object() ;
+		
 		if ( $o == NULL ) { // Nothing more to do
 			$sql = "UPDATE batch SET status='DONE',last_item='',message='',ts_last_change='$ts' WHERE id=$batch_id" ;
 			if(!$result = $db->query($sql)){
@@ -429,10 +428,12 @@ class QuickStatements {
 				$this->use_oauth = false ;
 			}
 		}
-
+		
+		
+		
 		// Update status
-#if ( !isset($o->id) ) print_r ( $o ) ;
-		$sql = "UPDATE command SET status='RUN',ts_change='$ts',message='' WHERE num={$o->num}" ;
+
+		$sql = "UPDATE command SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND num={$o->num}";
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -443,9 +444,9 @@ class QuickStatements {
 		$cmd = json_decode ( $o->json ) ;
 		if ( !isset($cmd->summary) ) $cmd->summary = $summary ;
 		else $cmd->summary .= '; ' . $summary ;
-#		$this->use_oauth = false ;
+		$this->use_oauth = false;
 		$this->runSingleCommand ( $cmd ) ;
-
+		
 		// Update batch status
 		$db = $this->getDB() ;
 		$ts = $this->getCurrentTimestamp() ;
@@ -464,7 +465,7 @@ class QuickStatements {
 		}
 		// echo "command message:";
 		// var_dump($msg);
-		$sql = "UPDATE command SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE num={$o->num}" ;
+		$sql = "UPDATE command SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE batch_id=$batch_id AND num={$o->num}";
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -487,9 +488,6 @@ class QuickStatements {
 		return true ;
 
 	}
-
-
-
 
 
 	public function getToken ( $user_name ) {
