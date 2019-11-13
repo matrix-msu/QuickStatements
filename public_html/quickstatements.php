@@ -320,7 +320,7 @@ class QuickStatements {
 		$cmd = json_decode ( $o->json ) ;
 		if ( !isset($cmd->summary) ) $cmd->summary = $summary ;
 		else $cmd->summary .= '; ' . $summary ;
-		$this->use_oauth = false ;
+		// $this->use_oauth = false ;
 		$this->runSingleCommand ( $cmd ) ;
 		
 		// Update batch status
@@ -444,7 +444,7 @@ class QuickStatements {
 		$cmd = json_decode ( $o->json ) ;
 		if ( !isset($cmd->summary) ) $cmd->summary = $summary ;
 		else $cmd->summary .= '; ' . $summary ;
-		$this->use_oauth = false;
+		// $this->use_oauth = false;
 		$this->runSingleCommand ( $cmd ) ;
 		
 		// Update batch status
