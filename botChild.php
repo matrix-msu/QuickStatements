@@ -49,7 +49,7 @@
 
         $loopCount = 0;
         while ( $loopCount < 1000 ) {
-            $loopCount++;
+            //$loopCount++;
             //messageDb($starting_row.'-continue');
 			$qs2 = new QuickStatements ;
 			if ( !$qs2->runNextCommandInBatchFast ( $batch_id, $starting_row ) ){

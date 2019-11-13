@@ -1277,9 +1277,12 @@ exit ( 1 ) ; // Force bot restart
 				$tmpRowNum = $rowNum;
 				if( $first == 'LAST' ){
 					$tmpRowNum = $lastCreateRowNum;
+					$rowNum--;
 				}else{
 					if(!isset($editedQids[$first])){
 						$editedQids[$first] = $rowNum;
+					}else{
+						$rowNum--;
 					}
 					$tmpRowNum = $editedQids[$first];
 				}
@@ -1329,9 +1332,12 @@ exit ( 1 ) ; // Force bot restart
 				$tmpRowNum = $rowNum;
 				if( $first == 'LAST' ){
 					$tmpRowNum = $lastCreateRowNum;
+					$rowNum--;
 				}else{
 					if(!isset($editedQids[$first])){
 						$editedQids[$first] = $rowNum;
+					}else{
+						$rowNum--;
 					}
 					$tmpRowNum = $editedQids[$first];
 				}
