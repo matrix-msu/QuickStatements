@@ -63,7 +63,7 @@ class QuickStatements {
 	protected $user_id = 0 ;
 	protected $user_groups = array() ;
 	protected $db ;
-	protected $logging = true ;
+	protected $logging = false ;
 
 	public function __construct () {
 		global $wikidata_api_url ;
