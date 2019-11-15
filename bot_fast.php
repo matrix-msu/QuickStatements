@@ -42,13 +42,11 @@ function checkAndRunSingleBatch(){
 		for($i=1;$i<=$max_num_bots;$i++){
 			// echo "before botcall: ".time()."<br>";
 			//echo exec("/opt/local/bin/php botChild.php ".$count." 2>&1", $out, $v);
-			$test = exec("/opt/local/bin/php botChild.php $i {$result->id} $max_num_bots {$result->total_rows} >/dev/null 2>&1 &", $out, $v);
-			var_dump($test);
-			die;
-			echo "after botcall:... ".time()."<br><br>";
+			echo exec("/opt/local/bin/php botChild.php $i {$result->id} $max_num_bots {$result->total_rows} >/dev/null 2>&1 &", $out, $v);
+			// echo "after botcall:... ".time()."<br><br>";
 		}
 
-		echo '<br><br><br>after bot spawn';
+		// echo '<br><br><br>after bot spawn';
 		return 1;
 	} else {
 		echo '<br>';
@@ -61,12 +59,8 @@ function checkAndRunSingleBatch(){
 }
 
 
-
-$worked = checkAndRunSingleBatch() ;
-echo 'worked: ' . $worked;
-if ( $worked == 1 ) {
-	echo 'Finished a batch. Stopping the bot.';
-	die;
+if ( checkAndRunSingleBatch() ) {
+	echo('Finished a batch. Stopping the bot.');
 }
 
 ?>
