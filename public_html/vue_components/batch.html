@@ -65,9 +65,6 @@ div.create_batch_box > div {
 					</div>
 					<div v-if='(meta.commands.ERROR||0)>0'>, {{(meta.commands.ERROR||0)}} <span tt='errors'></span></div>
 				</div>
-				<div style='margin-top:0.5rem;padding-top:0.5rem;border-top:2px solid #DDD'>
-					<batch-commands :batch='meta.batch' @load-command='loadCommand($event)'></batch-commands>
-				</div>
 				<div style='display:flex;flex-direction:row;margin-bottom:0.5rem;'>
 					<div v-if='meta.batch.status=="RUN" || meta.batch.status=="INIT"'>
 						<button v-if='userCanStopBatch()' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential'>Start Bot (Sequential)</button>
@@ -89,6 +86,9 @@ div.create_batch_box > div {
 							<button v-if='' class='btn btn-outline-primary testing-back' tt='run_background' @click='runBatchInBackground'></button>
 						</span>
 					</div>
+				</div>
+				<div style='margin-top:0.5rem;padding-top:0.5rem;border-top:2px solid #DDD'>
+					<batch-commands :batch='meta.batch' @load-command='loadCommand($event)'></batch-commands>
 				</div>
 			</div>
 			<div v-else-if='user.canCreateBatch()' class='create_batch_box'>
