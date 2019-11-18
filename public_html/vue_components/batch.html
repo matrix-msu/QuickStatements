@@ -14,7 +14,6 @@ div.create_batch_box > div {
 <template id='batch-template'>
 <div>
 	<div v-if='ready'>
-
 		<div>
 			<div v-if='batch_exists'>
 				<div class='batch_status_header'>
@@ -69,10 +68,10 @@ div.create_batch_box > div {
 				
 				
 				<div style='display:flex;flex-direction:row;margin-bottom:0.5rem;'>
-					<div v-if='meta.batch.status=="RUN" || meta.batch.status=="INIT"'>
-						<button v-if='userCanStopBatch()' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled">Start Bot (Sequential)</button>
-						<button v-if='userCanStopBatch()' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled">Start Bot (Fast)</button>
-						<button v-if='userCanStopBatch()' class='btn btn-outline-danger' @click='stopBatch' v-bind:disabled="batchCommandsDisabled">STOP</button>
+					<div v-if='meta.batch.status=="STOP" || meta.batch.status=="INIT" || meta.batch.status == "RUN"'>
+						<button v-if='(userCanStopBatch() || !run.is_running_in_browser) && !isBatchRunning()' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled">Start Bot (Sequential)</button>
+						<button v-if='(userCanStopBatch() || !run.is_running_in_browser) && !isBatchRunning()' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled">Start Bot (Fast)</button>
+						<button v-if='(userCanStopBatch() || !run.is_running_in_browser || isBatchRunning()) && meta.batch.status!=="STOP"' class='btn btn-outline-danger' @click='stopBatch' v-bind:disabled="batchCommandsDisabled">STOP</button>
 						<span v-else>
 							<span tt='original_submitter_hint'></span>
 							<span v-if='!user.is_logged_in'>
@@ -85,13 +84,12 @@ div.create_batch_box > div {
 							<button v-if='(meta.commands.INIT||0)>0 && meta.batch.id==0' class='btn btn-outline-primary' tt='run' @click='runBatchDirectly'></button>
 							<button v-if='(meta.commands.ERROR||0)>0 && meta.batch.status=="DONE"' class='btn btn-outline-success' @click='tryResetErrors'>Try to reset errors</button>
 						</span> -->
-						<span v-if='user.canSubmitBatch() && !run.is_running_in_browser && (meta.commands.INIT||0)>0'>
+						<span v-if='user.canSubmitBatch() && !run.is_running_in_browser && (meta.commands.INIT||0)>0 && !isBatchProcessed()'>
 							<!-- Process batch button -->
 							<button v-if='' class='btn btn-outline-primary testing-back' id='process-button' tt='run_background' @click='runBatchInBackground'></button>
 						</span>
 					</div>
 				</div>
-				
 				
 				
 				<div style='margin-top:0.5rem;padding-top:0.5rem;border-top:2px solid #DDD'>
@@ -158,7 +156,7 @@ div.create_batch_box > div {
 let BatchPage = Vue.extend ( {
 	props : [ 'batch' ] ,
 	mixins : [ batch_access_mixin ] ,
-	data : function () {
+	data : () => {
 		return {
 			api:'./api.php' , 
 			ready:false , 
@@ -171,7 +169,8 @@ let BatchPage = Vue.extend ( {
 				last_ts:''
 			} , 
 			direct_command_delay_ms:1,
-			batchCommandsDisabled: false
+			batchCommandsDisabled: false,
+			batchProcesed: true
 		} 
 	} ,
     created : function () {
@@ -206,7 +205,25 @@ let BatchPage = Vue.extend ( {
     updated : function () { tt.updateInterface(this.$el) ; } ,
     mounted : function () { tt.updateInterface(this.$el) ; } ,
     methods : {
-    	updateWDforSite : function () {
+		isBatchProcessed: function() {
+			var me = this;
+			
+			if (
+				me.meta.batch.status === 'INIT' ||
+				me.meta.batch.status === 'STOP' ||
+				me.meta.batch.status === 'RUN' ||
+				me.meta.batch.status === 'DONE'
+			) {
+				return true;
+			}
+			else {
+				return false;
+			}
+			
+		},
+		isBatchRunning: function() { return (this.meta.batch.status === 'RUN'); },
+		isBatchInit: function() { return (this.meta.batch.status === 'INIT'); },
+		updateWDforSite : function () {
     		var me = this ;
     		let pb = config.sites[me.meta.batch.site].pageBase ;
     		if ( wd_link_base == pb ) return ;
@@ -301,6 +318,8 @@ let BatchPage = Vue.extend ( {
 		startBotSequential : function () {
 			var me = this;
 			
+			me.run.is_running_in_browser = true;
+			
 			console.log('start bot seq')
 			$('.btn-bot-start').hide();
 			 //var handle =window.open('../bot.php?single_batch=1',
@@ -309,6 +328,7 @@ let BatchPage = Vue.extend ( {
 				success: function(result){
 					console.log('start bot seq suc');
 					console.log(result);
+					run.is_running_in_browser = false;
 				}
 			});
 			// var handle =window.open('../bot.php?single_batch=1', '_blank', "location=yes,height=570,width=520,scrollbars=yes,status=yes");
@@ -317,6 +337,8 @@ let BatchPage = Vue.extend ( {
 		startBotFast : function () {
 			var me = this;
 			
+			me.run.is_running_in_browser = true;
+			
 			console.log('start bot fast')
 			$('.btn-bot-start').hide();
 			$.ajax({
@@ -324,20 +346,23 @@ let BatchPage = Vue.extend ( {
 				success: function(result){
 					console.log('start bot fast suc');
 					console.log(result);
+					me.run.is_running_in_browser = false;
 				}
 			});
 		},
         stopBatch : function () {
-			console.log('stop bathch')
         	var me = this ;
+			
+			me.run.is_running_in_browser = false;
+			
         	if ( me.meta.batch.id == 0 ) { // In browser
         		me.meta.batch.status = 'STOP' ;
         	} else {
         		$('#working').show() ;
-				$.post ( me.api , {
+				$.post ( me.api, {
 					action:'stop_batch',
 					batch:me.meta.batch.id
-				} , function ( d ) {
+				}, function ( d ) {
 					$('#working').hide() ;
 					me.loadBatchInfo(me.meta.batch.id) ;
 				} , 'json' ) ;
@@ -532,7 +557,6 @@ let BatchPage = Vue.extend ( {
         	Vue.set ( me.meta.batch , 'status' , 'RUN' ) ;
         	return true ;
         } ,
-
     	runBatchInBackground : function () {
 			//var win=window;
 
@@ -602,7 +626,6 @@ let BatchPage = Vue.extend ( {
 			// }
 
     	} ,
-
     },
 	template : '#batch-template'
 } ) ;
