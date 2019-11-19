@@ -14,7 +14,7 @@ var QuickStatements = {
 
 	init : function () {
 		var me = this ;
-		
+
 		var running = 3 ;
 		function fin () {
 			running-- ;
@@ -23,29 +23,29 @@ var QuickStatements = {
 			me.tt.addILdropdown ( $('#interface_language_wrapper') ) ;
 			me.updateUserInfo() ;
 			me.params = me.getUrlVars() ;
-		
+
 			$('#import_v1_dialog').on('shown.bs.modal', function () { $('#v1_commands').val('').focus() })
 			$('#v1_import').click ( function(){me.onImportV1(); $('#import_v1_dialog').modal('hide') } ) ;
-		
+
 			$('#import_csv_dialog').on('shown.bs.modal', function () { $('#csv_input').val('').focus() })
 			$('#csv_import').click ( function(){me.onImportCSV(); $('#import_csv_dialog').modal('hide') } ) ;
-		
+
 			$('#main_table').DataTable ( {
 				ordering:false,
 				info:false
 			} );
-	
+
 			$('#link_import_qs1').click ( me.onClickImportV1 ) ;
 			$('#link_import_csv').click ( me.onClickImportCSV ) ;
 			$('#run').click ( function () { me.run ( false ) ; return false } ) ;
 			$('#run_background').click ( function () { me.run ( true ) ; return false } ) ;
 			$('#stop').click ( function () { me.stop() ; return false } ) ;
-		
+
 			if ( typeof me.params.v1 != 'undefined' ) me.importFromV1 ( me.params.v1 ) ;
 			if ( typeof me.params.csv != 'undefined' ) me.importFromCSV ( me.params.csv ) ;
 
 			me.updateUnlabeledItems() ;
-			
+
 			if ( me.params.mode == 'batch' ) me.run_state.batch_id = me.params.batch ;
 			if ( me.params.mode == 'batches' ) {
 				me.run_state.filters = {} ;
@@ -53,9 +53,9 @@ var QuickStatements = {
 			}
 			me.switchMode ( me.params.mode ) ;
 		}
-		
+
 		me.tt = new ToolTranslation ( { tool:'quickstatements' , language:me.lang() , fallback:'en' , callback : function () { fin() } } ) ;
-		
+
 		$.get ( 'config.json' , function ( d ) {
 			me.config = d ;
 			me.sites = d.sites ;
@@ -79,16 +79,16 @@ var QuickStatements = {
 		var me = this ;
 		return me.sites[me.site].api ;
 	} ,
-	
+
 	getSitePageURL : function ( page ) {
 		var me = this ;
 		return me.sites[me.site].pageBase + encodeURIComponent ( page.replace(/ /g,'_') ) ;
 	} ,
-	
+
 	lang : function () {
 		return 'en' ; // FIXME current language
 	} ,
-	
+
 	stop : function () {
 		var me = this ;
 		me.run_state.running = false ;
@@ -97,11 +97,11 @@ var QuickStatements = {
 		$('#run_buttons button').prop ( 'disabled' , false ) ;
 		$('#stop_buttons').hide() ;
 	} ,
-	
+
 	ts2string : function ( ts ) {
 		return ts.substr(0,4) + '-' + ts.substr(4,2) + '-' + ts.substr(6,2) + ' ' + ts.substr(8,2) + ':' + ts.substr(10,2) + ':' + ts.substr(12,2) ;
 	} ,
-	
+
 	canUserStopBatch : function ( batch_user_name ) {
 		var me = this ;
 		if ( typeof me.oauth.query == 'undefined' ) return false ;
@@ -115,11 +115,11 @@ var QuickStatements = {
 		} ) ;
 		return ret ;
 	} ,
-	
+
 	safeHTML : function ( h ) {
 		return h.replace(/</,'&lt').replace(/>/,'&gt').replace(/&/,'&amp;')
 	} ,
-	
+
 	getBatchButtons : function ( d2 ) {
 		var me = this ;
 		var h = '' ;
@@ -139,7 +139,7 @@ var QuickStatements = {
 		}
 		return h ;
 	} ,
-	
+
 	updateBatchStatus : function () {
 		console.log('update batch stat');
 		var me = this ;
@@ -168,11 +168,11 @@ var QuickStatements = {
 				h += "<tr><td>" + k + "</td><td>" + v + "</td></tr>" ;
 			} ) ;
 			h += "</tbody></table>" ;
-			
+
 			h += me.getBatchButtons ( d2 ) ;
-			
+
 			$('#single_batch_status').html ( h ) ;
-			
+
 			$('button.stop-batch').click ( function () {
 				var button = $(this) ;
 				var batch_id = button.attr('batch') ;
@@ -201,7 +201,7 @@ var QuickStatements = {
 
 		} ) ;
 	} ,
-	
+
 	showBatches : function () {
 		var me = this ;
 
@@ -245,13 +245,13 @@ var QuickStatements = {
 			$('#multi_batch_status').html(h) ;
 		} ) ;
 	} ,
-	
+
 	batchesByUser : function ( user_name_encoded ) {
 		var me = this ;
 		me.run_state.filters = { user:decodeURIComponent(user_name_encoded) } ;
 		me.switchMode ( 'batches' ) ;
 	} ,
-	
+
 	showBatch : function () {
 		var me = this ;
 		location.hash = 'mode=batch&batch=' + me.run_state.batch_id ;
@@ -259,7 +259,7 @@ var QuickStatements = {
 		me.run_state.batch_watcher = setInterval ( function () { me.updateBatchStatus() ; } , me.batch_update_interval ) ;
 		me.updateBatchStatus()
 	} ,
-	
+
 	switchMode : function ( new_mode ) {
 		var me = this ;
 		if ( typeof new_mode == 'undefined' ) return ;
@@ -271,7 +271,7 @@ var QuickStatements = {
 		if ( new_mode == 'batches' ) me.showBatches () ;
 		if ( new_mode == 'token' ) me.getToken () ;
 	} ,
-	
+
 	getToken : function () {
 		var me = this ;
 		var params = { action:'get_token' } ;
@@ -280,7 +280,7 @@ var QuickStatements = {
 			$('#token').text ( d.data.token ) ;
 		} ) ;
 	} ,
-	
+
 	runInBackground : function () {
 		var me = this ;
 		var name = '' ;
@@ -291,7 +291,7 @@ var QuickStatements = {
 			name:name,
 			commands : JSON.stringify(me.data.commands)
 		} , function ( d ) {
-		
+
 			if ( d.status != 'OK' ) {
 				alert ( d.status ) ;
 				console.log ( d ) ;
@@ -304,12 +304,12 @@ var QuickStatements = {
 				commands : { pending:0 , done:0 } ,
 				batch_id : d.batch_id
 			} ;
-			
+
 			me.switchMode ( 'batch' ) ;
 
 		} ) ;
 	} ,
-	
+
 	run : function ( in_background ) {
 	    console.log('in run')
 		var me = this ;
@@ -343,14 +343,14 @@ var QuickStatements = {
 		} ) ;
 		$('#stop_buttons button').prop ( 'disabled' , false ) ;
 		$('#run_buttons button').prop ( 'disabled' , true ) ;
-		$('#stop_buttons').show() ;
+		//$('#stop_buttons').show() ;
 		if ( in_background ) {
 //			alert ( "Not implemented yet" ) ;
 		} else {
 			me.runNextCommand() ;
 		}
 	} ,
-	
+
 	runNextCommand : function () {
 		var me = this ;
 		if ( !me.run_state.running ) return ; // Stopped
@@ -363,14 +363,14 @@ var QuickStatements = {
 		if ( typeof cmdnum == 'undefined' ) return me.stop() ; // All done
 		me.runSingleCommand ( cmdnum ) ;
 	} ,
-	
+
 	setCommandStatus : function ( cmdnum , status ) {
 		var me = this ;
 		var cmd = me.data.commands[cmdnum] ;
 		cmd.status = 'running' ;
 		me.updateCommandRow ( cmdnum ) ;
 	} ,
-	
+
 	updateCommandRow : function ( cmdnum ) {
 		var me = this ;
 		var dt = $('#main_table').DataTable() ;
@@ -379,7 +379,7 @@ var QuickStatements = {
 		dt.row(cmdnum).data(tabs).draw() ;
 		me.tt.updateInterface ( dt ) ;
 	} ,
-	
+
 	updateRunStatus : function () {
 		var me = this ;
 		var out = [] ;
@@ -389,7 +389,7 @@ var QuickStatements = {
 		var h = out.join('; ') ;
 		$('#run_status').text ( h ) ;
 	} ,
-	
+
 	runSingleCommand : function ( cmdnum ) {
 		var me = this ;
 		var cmd = me.data.commands[cmdnum];
@@ -416,7 +416,7 @@ var QuickStatements = {
 			me.runNextCommand() ;
 		} , 'json' ) ;
 	} ,
-	
+
 	updateUserInfo : function () {
 		var me = this ;
 		var h = '' ;
@@ -435,13 +435,13 @@ var QuickStatements = {
 		$('#userinfo').html ( h ) ;
 		me.tt.updateInterface($('#userinfo')) ;
 	} ,
-	
+
 	showLastBatches : function () {
 		var me = QuickStatements ;
 		me.run_state.filters = {} ;
 		me.switchMode ( 'batches' ) ;
 	} ,
-	
+
 	getUrlVars : function () {
 		var vars = {} ;
 		var hash = window.location.href.slice(window.location.href.indexOf('#') + 1) ;
@@ -454,33 +454,33 @@ var QuickStatements = {
 		} ) ;
 		return vars;
 	} ,
-	
+
 	onClickImportV1 : function () {
 		var me = QuickStatements ;
 		me.switchMode ( 'commands' ) ;
 		$('#import_v1_dialog').modal('show') ;
 	} ,
-	
+
 	onClickImportCSV : function () {
 		var me = QuickStatements ;
 		me.switchMode ( 'commands' ) ;
 		$('#import_csv_dialog').modal('show') ;
 	} ,
-	
+
 	onImportV1 : function () {
 		var me = this ;
 		var text = $('#v1_commands').val() ;
 		$('#v1_commands').val('') ;
 		me.importFromV1 ( text ) ;
 	} ,
-	
+
 	onImportCSV : function () {
 		var me = this ;
 		var csv = $('#csv_input').val() ;
 		$('#csv_input').val('') ;
 		me.importFromCSV ( csv ) ;
 	} ,
-	
+
 	updateUnlabeledItems : function () {
 		var me = this ;
 		var to_update = [] ;
@@ -498,13 +498,13 @@ var QuickStatements = {
 			a.removeClass('wd_unlabeled').addClass('wd_pq').attr({title:pq}) ;
 			if ( to_update.length >= 50 ) return false ; // Max
 		} ) ;
-		
+
 		$('a.pq_edit_unlinked').each ( function () {
 			var a = $(this) ;
 			a.removeClass('pq_edit_unlinked') ;
 			a.click ( function() { me.onClickEditPQ($(a.parents('div.pq_container').get(0))) ; return false } ) ;
 		} ) ;
-		
+
 		if ( to_update.length > 0 ) {
 			console.log('api call');
 			$.getJSON ( me.getSiteAPI()+'?action=wbgetentities&ids='+to_update.join('|')+"&format=json&callback=?" , function ( d ) {
@@ -541,10 +541,10 @@ var QuickStatements = {
 				} ) ;
 			} ) ;
 		}
-		
+
 		setTimeout ( function () { me.updateUnlabeledItems() } , 500 ) ;
 	} ,
-	
+
 	onClickEditPQ : function ( container ) {
 		var me = this ;
 		$('button.cancel').click() ; // close all other open edit forms
@@ -567,12 +567,12 @@ var QuickStatements = {
 		h += "</div>" ;
 		form.html(h).show() ;
 		me.tt.updateInterface(form) ;
-		
+
 		me.addTypeahead ( $(container.find('div.pq_typeahead')) ) ;
 		$(container.find('form')).submit ( function () { me.onSubmitPQ ( container , true ) ; return false } ) ;
 		$(container.find('button.cancel')).click ( function () { me.onSubmitPQ ( container , false ) ; return false } ) ;
 	} ,
-	
+
 	updateRef : function ( json_string , value ) {
 		var me = this ;
 		if ( typeof json_string == 'undefined' ) return ;
@@ -590,7 +590,7 @@ var QuickStatements = {
 			console.log ( "COUND NOT STORE REF" , j , value ) ;
 		}
 	} ,
-	
+
 	onSubmitPQ : function ( container , do_store ) {
 		var me = this ;
 		var ta = $(container.find('div.pq_typeahead')) ;
@@ -607,7 +607,7 @@ var QuickStatements = {
 		pqv.show() ;
 		container.find('div.pq_button').show() ;
 	} ,
-	
+
 	addTypeahead : function ( o ) {
 		var me = this ;
 		me.lastTypeahead = '' ;
@@ -619,7 +619,7 @@ var QuickStatements = {
 		input.focus() ;
 		me.typeAhead ( o , input , select ) ;
 	} ,
-	
+
 	typeAhead : function ( o , input , select ) {
 		var me = this ;
 		var type = o.attr('type') ;
@@ -667,7 +667,7 @@ var QuickStatements = {
 			me.setupTableFromCommands() ;
 		} , 'json' ) ;
 	} ,
-	
+
 	importFromCSV : function ( csv ) {
 		var me = this ;
 		if ( csv.length < 1000 ) location.hash = 'csv='+csv ;
@@ -682,7 +682,7 @@ var QuickStatements = {
 			me.setupTableFromCommands() ;
 		} , 'json' ) ;
 	} ,
-	
+
 	renderPQvalue : function ( i ) {
 		var me = this ;
 		var html = '???' ;
@@ -698,7 +698,7 @@ var QuickStatements = {
 		}
 		return html ;
 	} ,
-	
+
 	renderPQ : function ( i , ref ) {
 		var me = this ;
 		html = "<div class='pq_container' pq='"+me.htmlSafe(i)+"'" ;
@@ -710,14 +710,14 @@ var QuickStatements = {
 		html += "</div>" ;
 		return html ;
 	} ,
-	
+
 	htmlSafe : function ( s ) {
 		var me = this ;
 		if ( typeof s == 'undefined' ) return '' ;
 		var html_safe = (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\//g,'&#x2F;') ;
 		return html_safe ;
 	} ,
-	
+
 	renderString : function ( s , ref ) {
 		var me = this ;
 		var h = '' ;
@@ -728,7 +728,7 @@ var QuickStatements = {
 		h += "</div>" ;
 		return h ;
 	} ,
-	
+
 	renderTime : function ( v , ref ) {
 		var me = this ;
 		var h = '' ;
@@ -739,7 +739,7 @@ var QuickStatements = {
 		h += "</div>" ;
 		return h ;
 	} ,
-	
+
 	renderCoordinate : function ( v , ref ) {
 		var me = this ;
 		var h = '' ;
@@ -750,7 +750,7 @@ var QuickStatements = {
 		h += "</div>" ;
 		return h ;
 	} ,
-	
+
 	renderQuantity : function ( v , ref ) {
 		var me = this ;
 		var h = '' ;
@@ -766,7 +766,7 @@ var QuickStatements = {
 		h += "</div>" ;
 		return h ;
 	} ,
-	
+
 	renderMonolingualtext : function ( v , ref ) {
 		var me = this ;
 		var h = '' ;
@@ -777,7 +777,7 @@ var QuickStatements = {
 		h += "</div>" ;
 		return h ;
 	} ,
-	
+
 	renderValue : function ( v , ref ) {
 		var me = this ;
 		if ( typeof v.type == 'undefined' ) return "<i>" + JSON.stringify(v) + "</i>" ;
@@ -793,13 +793,13 @@ var QuickStatements = {
 		if ( v.type == 'monolingualtext' ) return me.renderMonolingualtext ( v.value , ref ) ;
 		return "<i>" + JSON.stringify(v) + "</i>" ;
 	} ,
-	
+
 	renderAction : function ( cmd ) {
 		var ret = cmd.action.toUpperCase() ;
 		if ( typeof cmd.what != 'undefined' && cmd.what != 'statement' ) ret += " " + cmd.what.toUpperCase() ;
 		return ret ;
 	} ,
-	
+
 	renderQualifier : function ( qualifier , ref ) {
 		var me = this ;
 		var h = '' ;
@@ -809,7 +809,7 @@ var QuickStatements = {
 		h += "<div>" + me.renderValue ( qualifier.value , ref ) + "</div>" ;
 		return h ;
 	} ,
-	
+
 	renderSources : function ( sources , ref ) {
 		var me = this ;
 		var h = '' ;
@@ -822,7 +822,7 @@ var QuickStatements = {
 		} ) ;
 		return h ;
 	} ,
-	
+
 	wrapStatusAlert : function ( s , key , msg ) {
 		var me = this ;
 		var ret = '<div class="alert alert-'+key+'" style="padding:2px;margin:0px" role="alert"' ;
@@ -833,7 +833,7 @@ var QuickStatements = {
 		ret += '>'+s+'</div>' ;
 		return ret ;
 	} ,
-	
+
 	renderStatus : function ( command ) {
 		var me = this ;
 		if ( typeof command.status == 'undefined' || command.status == '' ) return me.wrapStatusAlert ( "<span tt='pending' class='update_label'></span>" , 'info' , command.message ) ;
@@ -847,7 +847,7 @@ var QuickStatements = {
 		}
 		return s ;
 	} ,
-	
+
 	getCommandRowTabs : function ( cmdnum , cmd , dt ) {
 		var me = this ;
 		var tabs = [ '' , '<span tt="unknown_command"></span>' , '' , '' , '' , '' ] ;
@@ -876,13 +876,13 @@ var QuickStatements = {
 		}
 		return tabs ;
 	} ,
-	
+
 	addCommandToTable : function ( cmdnum , cmd , dt ) {
 		var me = this ;
 		var tabs = me.getCommandRowTabs ( cmdnum , cmd , dt ) ;
 		dt.row.add ( tabs ) ;
 	} ,
-	
+
 	setupTableFromCommands : function () {
 		var me = this ;
 		var dt = $('#main_table').DataTable() ;

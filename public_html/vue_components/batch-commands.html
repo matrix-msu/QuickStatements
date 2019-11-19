@@ -11,9 +11,6 @@ div.position_button_bar > div {
 <template id='batch-commands-template'>
 <div>
 <div v-if='typeof batch!="undefined" && typeof batch.data!="undefined" && typeof batch.data.commands!="undefined"'>
-	<div style='display:flex;flex-direction:column;'>
-		<command v-for='command_id in current_command_ids' :command='batch.data.commands[command_id]'></command>
-	</div>
 	<div style='display:flex;'>
 		<div class='position_button_bar'>
 			<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
@@ -51,6 +48,9 @@ div.position_button_bar > div {
 				<option value='500'>500</option>
 			</select>
 		</div>
+	</div>
+	<div style='display:flex;flex-direction:column;'>
+		<command v-for='command_id in current_command_ids' :command='batch.data.commands[command_id]'></command>
 	</div>
 </div>
 </div>

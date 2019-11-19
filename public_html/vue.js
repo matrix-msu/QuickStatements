@@ -12,7 +12,12 @@ $(document).ready ( function () {
     vue_components.toolname = 'quickstatements' ;
 //    vue_components.components_base_url = 'https://tools.wmflabs.org/magnustools/resources/vue/' ; // For testing; turn off to use tools-static
     Promise.all ( [
-            vue_components.loadComponents ( ['wd-date','wd-link','tool-translate','tool-navbar','commons-thumbnail',
+            vue_components.loadComponents ( [
+                'vue_components/wd-date.html',
+                'vue_components/wd-link.html',
+                'vue_components/tool-translate.html',
+                'vue_components/tool-navbar.html',
+                'vue_components/commons-thumbnail.html',
                 'vue_components/batch_access_mixin.html',
                 'vue_components/user.html',
                 'vue_components/main-page.html',
@@ -21,6 +26,7 @@ $(document).ready ( function () {
                 'vue_components/batch.html',
                 'vue_components/batches.html',
                 'vue_components/user-page.html',
+                'vue_components/help.html'
                 ] ) ,
             new Promise(function(resolve, reject) {
                 $.get ( './config.json' , function (d) {
@@ -35,13 +41,14 @@ $(document).ready ( function () {
         wd_ns_prefixes = {} ;
         for ( var letter in config.sites[config.site].types )
             wd_ns_prefixes[letter] = config.sites[config.site].types[letter].ns_prefix ;
-
+        
         const routes = [
           { path: '/', component: MainPage , props:true },
           { path: '/batches', component: BatchesPage , props:true },
           { path: '/batches/:user_name', component: BatchesPage , props:true },
           { path: '/batch', component: BatchPage , props:true },
           { path: '/batch/:batch', component: BatchPage , props:true },
+          { path: '/help', component: HelpPage, props:true },
           { path: '/user', component: UserPage , props:true },
           { path: '/user/:given_user_name', component: UserPage , props:true },
           { path: '/:url_params', component: MainPage , props:true },
@@ -50,4 +57,3 @@ $(document).ready ( function () {
         app = new Vue ( { router } ) .$mount('#app') ;
     } ) ;
 } ) ;
-

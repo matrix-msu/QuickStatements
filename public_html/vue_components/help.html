@@ -1,0 +1,114 @@
+<style>
+    .help-wrapper {
+        padding: 40px;
+    }
+    .item,.prop,.string,.time,.source,.tab {
+    	margin:2px;
+    	padding:1px;
+    }
+    .item {
+    	background-color:#D6F8DE;
+    	border:3px solid #93EEAA;
+    }
+    .prop {
+    	background-color:#DBEBFF;
+    	border:3px solid #99C7FF;
+    }
+    .string {
+    	background-color:#FFDBFB;
+    	border:3px solid #FE98F1;
+    }
+    .time {
+    	background-color:#D7D1F8;
+    	border:3px solid #A095EE;
+    }
+    .source {
+    	background-color:#FFDFDF;
+    	border:3px solid #FF9797;
+    }
+    .location {
+    	background-color:#FFEAB7;
+    	border:3px solid #FFC848;
+    }
+    .tab {
+    	background-color:#FFFFC8;
+    	border:3px solid #FFFF84;
+    }
+    .value {
+    	background-color:#DDD;
+    	border:3px solid #BBB;
+    }
+    .quantity {
+    	background-color:#E1E1A8;
+    	border:3px solid #D1D17A;
+    }
+</style>
+
+<template id="help-template">
+    <div class="help-wrapper">
+        <div style="font-size:12pt" id="howto">
+            <h3>How to use</h3>
+            <p>You can specify the statements to add by typing/pasting one row per statement into the above text area.
+            Different parts of the statement are separated by a <span class="tab">TAB</span> character or by <span class="tab">|</span>.
+            As <span class="tab">TAB</span> is hard to type into a text area, you may want to use a text editor, and paste the statements into the text area later.
+            <br><i>Hint:</i> You can also use a spreadsheet software such as Excel; Copying/pasting the cells should automatically insert <span class="tab">TAB</span>s.
+            </p>
+            <p>Each statement <i>must</i> consist of an <span class="item">item</span>, a <span class="prop">property</span>, and a <span class="value">value</span>.
+            A <span class="value">value</span> can be another <span class="item">item</span>, a <span class="string">string</span>, a <span class="time">time</span>, a <span class="location">location</span>, or a <span class="quantity">quantity</span>,
+            depending on the property type. A basic example:</p>
+            <p style="margin-top:20px;margin-bottom:20px;">
+            <span class="item">Q4115189</span> <span class="tab">TAB</span> <span class="prop">P31</span> <span class="tab">TAB</span> <span class="item">Q1</span>
+            </p>
+            <p>For the (initial) item of a statement, you can use an article name instead, <i>if</i> you fill in a <tt>xxwiki</tt> value in the input box above the text area; the correct item number (if available) will be retrieved automatically.</p>
+            <ul>
+            <li><span class="item">Items</span> are always in the form <tt>Qxx</tt>, <span class="prop">properties</span> in the form <tt>Pxx</tt>.<br>&nbsp;</li>
+            <li><span class="string">Strings</span> <i>have</i> to be <tt>"in double quotes"</tt>.<br>
+            For a monolingual string, prefix it with the language and a colon, e.g. <tt>en:"Some text"</tt><br>&nbsp;</li>
+            <li><span class="time">Time</span> values <i>must</i> have the  <tt>+1967-01-17T00:00:00Z/11</tt>, with the <tt>/11</tt> designating the precision.<br>
+            A precision of 11=day, 10=month, 9=year; default is 9.<br>&nbsp;</li>
+            <li><span class="location">Location</span> in the form of <tt>@LAT/LON</tt>, with LAT and LON as decimal numbers.<br>&nbsp;</li>
+            <li><span class="quantity">Quantity</span> in the form of <tt>amount[lower,upper]Uxx</tt>, with <tt>amount</tt>, <tt>lower</tt> and <tt>upper</tt> being a rational number and <tt>Uxx</tt> being the item number of an unit.<br>
+                <tt>unit</tt> is optional.<br>
+                <tt>lower</tt>, <tt>upper</tt> are optional. <tt>lower</tt> and <tt>upper</tt> must be either both present or not present at all. When present, they are enclosed in square brackets and separated by <tt>,</tt><br>
+                <tt>amount</tt>, <tt>lower</tt> and <tt>upper</tt> must use <tt>.</tt> as decimal separator, must not use any thousands separator and may be prefixed by <tt>+</tt> or <tt>-</tt>.<br>
+                Don't leave any space in the quantity.<br>
+                <tt>10</tt>, <tt>10U11573</tt>, <tt>-10[-12.5,-7.5]</tt>, <tt>0[-5,5]U11573</tt> are all valid quantities.</li>
+            </ul>
+            <p>Each statement "triplet" can be followed by an unlimited number of "qualifiers pairs" of <span class="prop">property</span> <span class="tab">TAB</span> <span class="value">value</span>.</p>
+            <p>Each statement can be followed by an unlimited number of "source pairs" of <span class="source">source property</span> <span class="tab">TAB</span> <span class="value">value</span>.<br>
+            The source property is identical to the "normal" property, except it uses the form <tt>Sxx</tt> instead of <tt>Pxx</tt>.</p>
+            <p><i>Note:</i> Existing statements with an exact match (property <i>and</i> value) will <i>not</i> be added again.</p>
+            <p>A valid example statement would thus be:</p>
+            <p><span class="item">Q4115189</span> <span class="tab">TAB</span> <span class="prop">P31</span> <span class="tab">TAB</span> <span class="item">Q1</span>
+            <span class="tab">TAB</span> <span class="prop">P580</span> <span class="tab">TAB</span> <span class="time">+1840-01-01T00:00:00Z/09</span>
+            <span class="tab">TAB</span> <span class="source">S143</span> <span class="tab">TAB</span> <span class="item">Q48183</span>
+            </p>
+            <p style="font-size:9pt">("Sandbox item" is an "instance of" "universe", qualifier "start date"=1840, sourced as "imported from" "German Wikipedia")</p>
+            <h4>Item creation and labels/alias/description/sitelink</h4>
+            <p>To add a label in a specific language to an item, use "Lxx" instead of the property, with "xx" as the language code.</p>
+            <p>To add an alias in a specific language to an item, use "Axx" instead of the property, with "xx" as the language code.</p>
+            <p>To add a description in a specific language to an item, use "Dxx" instead of the property, with "xx" as the language code.</p>
+            <p>To add a sitelink to a specific page on a site to an item, use "Sxxx" instead of the property, with "xxx" as the site (e.g. <i>enwiki</i>).</p>
+            <p>For example, <span class="prop">Lfr</span> would add a label in French.</p>
+            <p>These values <b>must</b> be <span class="string">strings</span> in double quotes.</p>
+            <p>You can also create new items by inserting a line consisting only of the word "CREATE".<br><i>PLEASE ENSURE YOU DO NOT CREATE DUPLICATE ITEMS!</i></p>
+            <p>To add statements to the newly created item, use the word "LAST" instead of the <span class="item">Q number</span>; the statement will be added to the last created item.</p>
+            <p>An example for creating a new item and setting a label:</p>
+            <p><span class="value">CREATE</span></p>
+            <p><span class="item">LAST</span> <span class="tab">TAB</span> <span class="prop">Lfr</span> <span class="tab">TAB</span> <span class="string">"Le croissant magnifique!"</span></p>
+            <h4>Item merging</h4>
+            <p>You can merge two items. The first item will be merged and (if successful) redirected into the second item.</p>
+            <p><span class="value">MERGE</span> <span class="tab">TAB</span> <span class="item">Qsource</span> <span class="tab">TAB</span> <span class="item">Qdestination</span></p>
+        </div>
+
+	</div>
+</template>
+
+<script>
+'use strict';
+
+let HelpPage = Vue.extend ( {
+    props : [],
+    template:'#help-template'
+});
+</script>
