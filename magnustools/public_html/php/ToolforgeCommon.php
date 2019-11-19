@@ -157,15 +157,13 @@ final class ToolforgeCommon {
 	private function getDBpassword () /*:string*/ {
 		if ( isset ( $this->tool_user_name ) and $this->tool_user_name != '' ) $user = $this->tool_user_name ;
 		else $user = str_replace ( 'tools.' , '' , get_current_user() ) ;
-		$passwordfile = '/home/christj2/website/enslaved-quickstatements/magnustools/users/' . $user . '/replica.my.cnf' ;
-		//if ( $user == 'magnus' ) $passwordfile = '/home/' . $user . '/replica.my.cnf' ; // Command-line usage
-		$config = parse_ini_file( $passwordfile );
-		if ( isset( $config['user'] ) ) {
-			$this->mysql_user = $config['user'];
-		}
-		if ( isset( $config['password'] ) ) {
-			$this->mysql_password = $config['password'];
-		}
+		$config = json_decode (file_get_contents(__DIR__ . '/../../../public_html/config.json'));
+		
+		if (isset($config->sites->wikidata->mySqlUser))
+			$this->mysql_user = $config->sites->wikidata->mySqlUser;
+		
+		if (isset($config->sites->wikidata->mySqlPassword))
+			$this->mysql_password = $config->sites->wikidata->mySqlPassword;
 	}
 
 	public function openDBtool ( $dbname = '' , $server = '' , $force_user = '' , $persistent = false ) {
@@ -178,9 +176,7 @@ final class ToolforgeCommon {
 		if ( $persistent ) $server = "p:$server" ;
 		$server = "localhost";
 		$dbname = "quickstatements";
-        $this->mysql_user = "quickstatements";
-//		var_dump(array($server, $this->mysql_user, $this->mysql_password , $dbname));
-//		die;
+
 		$db = @new mysqli($server, $this->mysql_user, $this->mysql_password , $dbname);
 		assert ( $db->connect_errno == 0 , 'Unable to connect to database [' . $db->connect_error . ']' ) ;
 		return $db ;
