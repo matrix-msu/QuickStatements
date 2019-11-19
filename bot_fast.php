@@ -10,16 +10,16 @@ function checkAndRunSingleBatch(){
 	if ( isset($_GET['single_batch']) && isset($_GET['id']) ) {
 		$qs = new QuickStatements ;
 		$db = $qs->getDB() ;
-		
+
 		$sql = "SELECT * FROM batch WHERE id = " . $_GET['id'];
 		$query = $db->query($sql);
 		$result = $query->fetch_object();
-		
+
 		if (!$result) {
 			echo('Error: Specified id from URL parameter does not exist in the database.<br>');
 			die;
 		}
-		
+
 		if ( $result->status == 'INIT' || $result->status == 'STOP') {
 			// sets the batch status to RUN
 			if ( !$qs->startBatch($result->id) ) {
@@ -31,10 +31,10 @@ function checkAndRunSingleBatch(){
 			echo('Error: The specified batch id "'. $_GET['id'] .'" has already been processed (has a status of DONE).');
 			die;
 		}
-		
+
 		// echo 'before bot spawn<br><br><br>';
 
-		$max_num_bots = 40;
+		$max_num_bots = 60;
 		if( $max_num_bots > $result->total_rows ){
 			$max_num_bots = $result->total_rows;
 		}

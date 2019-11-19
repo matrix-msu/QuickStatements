@@ -255,16 +255,20 @@ class QuickStatements {
 		var_dump($db);
 		echo $batch_id;
 
-		$sql = "SELECT batch.last_item,user.id AS user_id,user.name AS user_name FROM batch,user WHERE batch.id=$batch_id AND user.id=batch.user" ;
+		$sql = "SELECT batch.last_item,batch.status,user.id AS user_id,user.name AS user_name FROM batch,user WHERE batch.id=$batch_id AND user.id=batch.user" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
+// die;
 
 		echo 'after ';
 		$o = $result->fetch_object() ;
 		echo 'this is o:';
 		var_dump($o);
+		if($o->status == 'STOP'){
+			die;
+		}
 		$this->last_item = $o->last_item ;
 		$this->user_id = $o->user_id ;
 		$this->user_name = $o->user_name ;
@@ -322,7 +326,7 @@ class QuickStatements {
 		else $cmd->summary .= '; ' . $summary ;
 		// $this->use_oauth = false ;
 		$this->runSingleCommand ( $cmd ) ;
-		
+
 		// Update batch status
 		$db = $this->getDB() ;
 		$ts = $this->getCurrentTimestamp() ;
@@ -377,12 +381,12 @@ class QuickStatements {
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
-		
-		
+
+
 
 		// echo 'after ';
 		$o = $result->fetch_object() ;
-		
+
 		$this->last_item = $o->last_item ;
 		$this->user_id = $o->user_id ;
 		$this->user_name = $o->user_name ;
@@ -394,7 +398,7 @@ class QuickStatements {
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
 		$o = $result->fetch_object() ;
-		
+
 		if ( $o == NULL ) { // Nothing more to do
 			$sql = "UPDATE batch SET status='DONE',last_item='',message='',ts_last_change='$ts' WHERE id=$batch_id" ;
 			if(!$result = $db->query($sql)){
@@ -428,9 +432,9 @@ class QuickStatements {
 				$this->use_oauth = false ;
 			}
 		}
-		
-		
-		
+
+
+
 		// Update status
 
 		$sql = "UPDATE command SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND num={$o->num}";
@@ -446,7 +450,7 @@ class QuickStatements {
 		else $cmd->summary .= '; ' . $summary ;
 		// $this->use_oauth = false;
 		$this->runSingleCommand ( $cmd ) ;
-		
+
 		// Update batch status
 		$db = $this->getDB() ;
 		$ts = $this->getCurrentTimestamp() ;
