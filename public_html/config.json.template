@@ -19,8 +19,9 @@
                 "Q" : { "type":"item" , "ns":0 , "ns_prefix":"" },
                 "L" : { "type":"lexeme", "ns": 146, "ns_prefix":"Lexeme:" }
             },
-            "mySqlUser": "quickstatements",
-            "mySqlPassword": "qsPassw0rd!"
+            "mySqlUser": "SQL_USERNAME",
+            "mySqlPassword": "SQL_PASSWORD",
+            "mySqlDatabase": "DATABASE_NAME"
         }
     }
 }
