@@ -906,10 +906,45 @@ class QuickStatements {
 			}
 		} else {
 			$command->status = 'error' ;
-			if ( !isset($result) or $result === null or $result == '' ) {
-				$command->message = 'No result received for ' . json_encode($params) ;
-			} else if ( isset($result->error) and isset($result->error->info) ) {
-				if ( $this->retry_on_database_lock and $result->error->info == 'The database has been automatically locked while the slave database servers catch up to the master' ) {
+			if (
+				(!isset($result) or $result === null or $result == '') ||
+			 	( isset($result->error) and isset($result->error->info) )
+			) {
+				//todo- log the message here too. Idk why it isn't firing again.
+
+				//if ( $this->retry_on_database_lock and $result->error->info == 'The database has been automatically locked while the slave database servers catch up to the master' ) {
+				if (
+					(!isset($result) or $result === null or $result == '') ||
+					strpos($result->error->info,'Caught exception of type Wikimedia\Rdbms\DBQueryError') !== false ||
+					strpos($result->error->info,'The authorization headers in your request are not valid') !== false
+				) {
+					// $msg = 'yay hardcoded quickstatemnet.php erorr';
+					// if( isset($result->error->code)){
+					// 	$msg = "quickstatement.php: ". json_encode($result->error->code);
+					// }
+					// if( isset($result->error->info)){
+					// 	$msg = json_encode($result->error->info);
+					// 	$msg = "quickstatement.php: ". $msg;
+					// }
+					// $servername = "localhost";
+			        // $username = "josh";
+			        // $password = "joshPassw0rd!";
+			        // $dbname = "quickstatement_josh";
+			        // $conn = new mysqli($servername, $username, $password, $dbname);
+			        // if ($conn->connect_error) {
+			        //     die("Connection failed: " . $conn->connect_error);
+			        // }
+			        // $sql = "INSERT INTO test (msg)
+			        //      VALUES ('$msg')";
+					//
+			        // if ($conn->query($sql) === TRUE) {
+			        //     //echo "New record created successfully";
+			        // } else {
+			        //     //echo "Error: " . $sql . "<br>" . $conn->error;
+			        // }
+			        // $conn->close();
+
+
 					$command->status = '' ;
 					sleep ( 3 ) ;
 					$this->runAction ( $params , $command ) ;
@@ -917,7 +952,7 @@ class QuickStatements {
 				}
 				$command->message = $result->error->info ;
 				if ( preg_match ( '/Invalid CSRF token/' , $result->error->info ) ) {
-exit ( 1 ) ; // Force bot restart
+					exit ( 1 ) ; // Force bot restart
 					if ( isset ( $qs_global_bot_api ) ) unset ( $qs_global_bot_api ) ;
 					if ( isset ( $this->bot_api ) ) unset ( $this->bot_api ) ;
 					$this->getBotAPI ( true ) ;
