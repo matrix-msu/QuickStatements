@@ -33,7 +33,7 @@ final class ToolforgeCommon {
 		] ;
 
 	private $cookiejar ; # For doPostRequest
-	private/*string*/  $mysql_user , $mysql_password ;
+	private/*string*/  $mysql_user , $mysql_password, $mysql_database ;
 	private $db_cache = [] ;
 
 	public function __construct ( /*string*/ $toolname = '' ) {
@@ -164,6 +164,9 @@ final class ToolforgeCommon {
 		
 		if (isset($config->sites->wikidata->mySqlPassword))
 			$this->mysql_password = $config->sites->wikidata->mySqlPassword;
+		
+		if(isset($config->sites->wikidata->mySqlDatabase))
+			$this->mysql_database = $config->sites->wikidata->mySqlDatabase;
 	}
 
 	public function openDBtool ( $dbname = '' , $server = '' , $force_user = '' , $persistent = false ) {
@@ -175,7 +178,7 @@ final class ToolforgeCommon {
 		if ( $server == '' ) $server = "tools.labsdb" ; //"tools-db" ;
 		if ( $persistent ) $server = "p:$server" ;
 		$server = "localhost";
-		$dbname = "quickstatements";
+		$dbname = $this->mysql_database;
 
 		$db = @new mysqli($server, $this->mysql_user, $this->mysql_password , $dbname);
 		assert ( $db->connect_errno == 0 , 'Unable to connect to database [' . $db->connect_error . ']' ) ;
