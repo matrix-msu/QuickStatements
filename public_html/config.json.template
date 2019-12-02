@@ -14,6 +14,7 @@
             "server" : "raul.dev.matrix.msu.edu" ,
             "api" : "https://raul.dev.matrix.msu.edu/w/api.php" ,
             "pageBase" : "https://raul.dev.matrix.msu.edu/wiki/" ,
+			"toolBase" : "https://qs1.dev.matrix.msu.edu/enslaved-quickstatements-dev/public_html" ,
             "types" : {
                 "P" : { "type":"property" , "ns":120 , "ns_prefix":"Property:" } ,
                 "Q" : { "type":"item" , "ns":0 , "ns_prefix":"" },
