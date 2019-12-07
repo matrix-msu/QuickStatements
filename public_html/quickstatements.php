@@ -172,22 +172,43 @@ class QuickStatements {
 		$sql = "INSERT INTO batch_oauth (batch_id,serialized) VALUES ($batch_id,'".$db->real_escape_string(serialize($this->getOA()))."')" ;
 		if(!$result = $db->query($sql)) $this->log( "Could not store OAuth information for batch {$batch_id} [{$db->error}]" );
 		$totalRows = 0;
+		$sql = "CREATE TABLE `command_{$batch_id}` (
+			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			  `batch_id` int(11) NOT NULL,
+			  `num` int(11) NOT NULL,
+			  `row_num` int(11) NOT NULL,
+			  `json` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+			  `status` varchar(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+			  `message` varchar(1000) COLLATE utf8mb4_unicode_ci,
+			  `ts_change` varchar(14) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+			  PRIMARY KEY (`id`),
+			  KEY `batch_id` (`batch_id`),
+			  KEY `batch_id_2` (`batch_id`,`status`)
+	  		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
+		if(!$result = $db->query($sql)) $this->log( "Could not create command table for batch {$batch_id} [{$db->error}]" );
 		foreach ( $commands AS $k => $c ) {
 			$cs = json_encode ( $c ) ;
 			if ( trim($cs) == '' ) continue ; // Paranoia
 			$status = 'INIT' ;
 			$rowNum = 1;
-			if ( isset($c->rowNum) ){
-				$rowNum = $c->rowNum;
+			// var_dump($c);
+			// var_dump($c->rowNum);
+			if ( isset($c['rowNum']) ){
+				//echo "rowNum set:";
+				$rowNum = $c['rowNum'];
 				if( $rowNum > $totalRows ){
 					$totalRows = $rowNum;
 				}
 			}
-			if ( isset($c->status) and trim($c->status) != '' ) $status = strtoupper(trim($c->status)) ;
-			$sql = "INSERT INTO command (batch_id,num,json,status,ts_change,row_num) VALUES ($batch_id,$k,'".$db->real_escape_string($cs)."','".$db->real_escape_string($status)."','$ts',$rowNum)" ;
+			if ( isset($c->status) and trim($c->status) != '' ) $status = strtoupper(trim($c['status'])) ;
+			$sql = "INSERT INTO command_{$batch_id} (batch_id,num,json,status,ts_change,row_num) VALUES ($batch_id,$k,'".$db->real_escape_string($cs)."','".$db->real_escape_string($status)."','$ts',$rowNum)" ;
 			//echo $sql;die;
 			if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
+		// echo 'set total rows here:';
+		// var_dump($totalRows);
+		// die;
 		$sql = "UPDATE batch SET status='INIT', total_rows=$totalRows WHERE id=$batch_id" ;
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		return $batch_id ;
@@ -229,6 +250,74 @@ class QuickStatements {
 		return $user_name ;
 	}
 
+	public function findNextBatch ( $batch_id ) {
+		$db = $this->getDB() ;
+		// $userId = '' ;
+		// $sql = "select user from batch WHERE id=$batch_id"  ;
+		// if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		// while ( $o = $result->fetch_object() ) $userId = $o->user;
+
+		$sql = "select * from batch WHERE status='QUEUED' and id<>'$batch_id' order by ts_last_change ASC limit 1";
+		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		while ( $o = $result->fetch_object() ){
+			$batch = $o;
+		}
+		return $batch->id ;
+	}
+
+	public function checkForRunFastStatus ( $batch_id ) {
+		$db = $this->getDB() ;
+
+		$sql = "SELECT count(*) AS cnt from batch WHERE status='RUN_FAST'" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		$o = $result->fetch_object() ;
+		if ( $o->cnt > 0 ) {
+			return true;
+		}
+		return false ;
+	}
+
+	public function setStatusToRunFast ( $batch_id ) {
+		$batch_id *= 1 ;
+		if ( isset ( $qs_global_bot_api ) ) unset ( $qs_global_bot_api ) ;
+		if ( isset ( $this->bot_api ) ) unset ( $this->bot_api ) ;
+		$db = $this->getDB() ;
+
+		$user_name = $this->getUsernameFromBatchID ( $batch_id ) ;
+		if ( $user_name == '' ) return $this->setErrorMessage ( "Cannot determine user name for batch #" . $batch_id ) ;
+		if ( $this->isUserBlocked ( $user_name ) ) {
+			$sql = "UPDATE batch SET status='BLOCKED' WHERE id=$batch_id" ;
+			$db->query($sql) ;
+			return $this->setErrorMessage ( "User:$user_name is blocked on Wikidata" ) ;
+		}
+
+		$sql = "UPDATE batch SET status='RUN_FAST' WHERE id=$batch_id";
+		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		return true ;
+	}
+
+	public function queueBatch ( $batch_id ) {
+		$batch_id *= 1 ;
+		if ( isset ( $qs_global_bot_api ) ) unset ( $qs_global_bot_api ) ;
+		if ( isset ( $this->bot_api ) ) unset ( $this->bot_api ) ;
+		$db = $this->getDB() ;
+
+		$user_name = $this->getUsernameFromBatchID ( $batch_id ) ;
+		if ( $user_name == '' ) return $this->setErrorMessage ( "Cannot determine user name for batch #" . $batch_id ) ;
+		if ( $this->isUserBlocked ( $user_name ) ) {
+			$sql = "UPDATE batch SET status='BLOCKED' WHERE id=$batch_id" ;
+			$db->query($sql) ;
+			return $this->setErrorMessage ( "User:$user_name is blocked on Wikidata" ) ;
+		}
+
+		$sql = "UPDATE batch SET status='QUEUED' WHERE id=$batch_id";
+		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		return true ;
+	}
+
 	public function startBatch ( $batch_id ) {
 		$batch_id *= 1 ;
 		if ( isset ( $qs_global_bot_api ) ) unset ( $qs_global_bot_api ) ;
@@ -243,17 +332,17 @@ class QuickStatements {
 			return $this->setErrorMessage ( "User:$user_name is blocked on Wikidata" ) ;
 		}
 
-		$sql = "UPDATE batch SET status='RUN' WHERE id=$batch_id" ;
+		$sql = "UPDATE batch SET status='RUN_SEQUENTIAL' WHERE id=$batch_id" ;
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		return true ;
 	}
 
 	public function runNextCommandInBatchFast ( $batch_id, $row_num=-1 ) {
 
-		echo 'in run func';
-		$db = $this->getDB() ;
-		var_dump($db);
-		echo $batch_id;
+		// echo 'in run func';
+		$db = $this->getDB();
+		// var_dump($db);
+		// echo $batch_id;
 
 		$sql = "SELECT batch.last_item,batch.status,user.id AS user_id,user.name AS user_name FROM batch,user WHERE batch.id=$batch_id AND user.id=batch.user" ;
 		if(!$result = $db->query($sql)){
@@ -262,10 +351,10 @@ class QuickStatements {
 		}
 // die;
 
-		echo 'after ';
+		// echo 'after ';
 		$o = $result->fetch_object() ;
-		echo 'this is o:';
-		var_dump($o);
+		// echo 'this is o:';
+		// var_dump($o);
 		if($o->status == 'STOP'){
 			die;
 		}
@@ -274,7 +363,7 @@ class QuickStatements {
 		$this->user_name = $o->user_name ;
 		$ts = $this->getCurrentTimestamp() ;
 
-		$sql = "SELECT * FROM command WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$row_num ORDER BY num LIMIT 1" ;
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$row_num ORDER BY num LIMIT 1" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -313,7 +402,7 @@ class QuickStatements {
 		}
 
 		// Update status
-		$sql = "UPDATE command SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND num={$o->num}" ;
+		$sql = "UPDATE command_{$batch_id} SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND num={$o->num}" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -343,15 +432,15 @@ class QuickStatements {
 		if( $msg != '' ){
 			$message = ",message='".$msg."'";
 		}
-		echo "command message:";
-		var_dump($msg);
-		$sql = "UPDATE command SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE batch_id=$batch_id AND num={$o->num}" ;
+		// echo "command message:";
+		// var_dump($msg);
+		$sql = "UPDATE command_{$batch_id} SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE batch_id=$batch_id AND num={$o->num}" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
 		// Batch done?
-		$sql = "SELECT count(*) AS cnt FROM command WHERE batch_id=$batch_id AND status NOT IN ('ERROR','DONE')" ;
+		$sql = "SELECT count(*) AS cnt FROM command_{$batch_id} WHERE batch_id=$batch_id AND status NOT IN ('ERROR','DONE')" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -392,7 +481,7 @@ class QuickStatements {
 		$this->user_name = $o->user_name ;
 		$ts = $this->getCurrentTimestamp() ;
 
-		$sql = "SELECT * FROM command WHERE batch_id=$batch_id AND status IN ('INIT') ORDER BY num LIMIT 1" ;
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') ORDER BY num LIMIT 1" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -437,7 +526,7 @@ class QuickStatements {
 
 		// Update status
 
-		$sql = "UPDATE command SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND num={$o->num}";
+		$sql = "UPDATE command_{$batch_id} SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND num={$o->num}";
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -469,13 +558,13 @@ class QuickStatements {
 		}
 		// echo "command message:";
 		// var_dump($msg);
-		$sql = "UPDATE command SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE batch_id=$batch_id AND num={$o->num}";
+		$sql = "UPDATE command_{$batch_id} SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE batch_id=$batch_id AND num={$o->num}";
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		}
 		// Batch done?
-		$sql = "SELECT count(*) AS cnt FROM command WHERE batch_id=$batch_id AND status NOT IN ('ERROR','DONE')" ;
+		$sql = "SELECT count(*) AS cnt FROM command_{$batch_id} WHERE batch_id=$batch_id AND status NOT IN ('ERROR','DONE')" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -562,7 +651,7 @@ class QuickStatements {
 			$ret["$batch_id"] = array ( 'batch' => $o , 'commands' => array() ) ;
 		}
 
-		$sql = "SELECT batch_id,status,count(*) AS cnt FROM command WHERE batch_id IN ($bl) GROUP BY batch_id,status" ;
+		$sql = "SELECT batch_id,status,count(*) AS cnt FROM command_{$batch_id} WHERE batch_id IN ($bl) GROUP BY batch_id,status" ;
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		while ( $o = $result->fetch_object() ) {
 			$batch_id = $o->batch_id ;

@@ -1,6 +1,6 @@
 <?PHP
 
-error_reporting(E_ERROR|E_CORE_ERROR|E_ALL|E_COMPILE_ERROR); // 
+error_reporting(E_ERROR|E_CORE_ERROR|E_ALL|E_COMPILE_ERROR); //
 ini_set('display_errors', 'On');
 ini_set('max_execution_time', 0);
 
@@ -14,7 +14,7 @@ require_once ( 'quickstatements.php' ) ;
 function fin ( $status = '' ) {
 	global $out ;
 	if ( $status != '' ) $out['status'] = $status ;
-	print json_encode ( $out ) ; // , JSON_PRETTY_PRINT 
+	print json_encode ( $out ) ; // , JSON_PRETTY_PRINT
 	exit ( 0 ) ;
 }
 
@@ -29,6 +29,8 @@ if ( isset ( $_REQUEST['oauth_verifier'] ) ) {
 }
 
 if ( $action == 'import' ) {
+
+	// var_dump($_FILES);die;
 
 	ini_set('memory_limit','3000M');
 
@@ -46,43 +48,60 @@ if ( $action == 'import' ) {
 		$out['data']['commands'] = $qs->compressCommands ( $out['data']['commands'] ) ;
 	}
 
-	if ( $temporary ) {
-		$dir = './tmp' ;
-		if ( !file_exists($dir) ) mkdir ( $dir ) ;
-		$filename = tempnam ( $dir , 'qs_' ) ;
-		$handle = fopen($filename, "w");
-		fwrite($handle, json_encode($out) );
-		fclose($handle);
-		$out['data'] = preg_replace ( '/^.+\//' , '' , $filename ) ;
-
-		if ( $openpage ) {
-			$url = "./#/batch/?tempfile=" . urlencode ( $out['data'] ) ;
-			print "<html><head><meta http-equiv=\"refresh\" content=\"0;URL='{$url}'\" /></head><body></body></html>" ;
-			exit(0);
-		}
-
-		fin() ;
-	}
-
-	if ( $submit ) {
-		$batchname = get_request ( 'batchname' , '' ) ;
-		$site = get_request ( 'site' , '' ) ;
-
-		if ( $site != '' ) $qs->config->site = $site ;
-		$user_id = $qs->getUserIDfromNameAndToken ( $username , $token ) ;
-		if ( !isset($user_id) ) {
-			unset ( $out['data'] ) ;
-			fin ( "User name and token do not match" ) ;
-		}
-
-		$batch_id = $qs->addBatch ( $out['data']['commands'] , $user_id , $batchname , $site ) ;
-		unset ( $out['data'] ) ;
+	$user_id = $qs->getCurrentUserID() ;
+	$name = trim ( get_request ( 'name' , '' ) ) ;
+	$site = strtolower ( trim ( get_request ( 'site' , '' ) ) ) ;
+	if ( $user_id === false ) {
+		$out['status'] = $qs->last_error_message ;
+	} else {
+		// $commands = json_decode ( get_request('commands','[]') ) ;
+		$batch_id = $qs->addBatch ( $out['data']['commands'] , $user_id , $name , $site ) ;
 		if ( $batch_id === false ) {
 			$out['status'] = $qs->last_error_message ;
 		} else {
 			$out['batch_id'] = $batch_id ;
+			unset($out['data']);
 		}
 	}
+
+	// if ( $temporary ) {
+	// 	$dir = './tmp' ;
+	// 	if ( !file_exists($dir) ) mkdir ( $dir ) ;
+	// 	$filename = tempnam ( $dir , 'qs_' ) ;
+	// 	$handle = fopen($filename, "w");
+	// 	fwrite($handle, json_encode($out) );
+	// 	fclose($handle);
+	// 	$out['data'] = preg_replace ( '/^.+\//' , '' , $filename ) ;
+	//
+	// 	if ( $openpage ) {
+	// 		$url = "./#/batch/?tempfile=" . urlencode ( $out['data'] ) ;
+	// 		print "<html><head><meta http-equiv=\"refresh\" content=\"0;URL='{$url}'\" /></head><body></body></html>" ;
+	// 		exit(0);
+	// 	}
+	//
+	// 	fin() ;
+	// }
+
+	// if ( $submit ) {
+	// 	$batchname = get_request ( 'batchname' , '' ) ;
+	// 	$site = get_request ( 'site' , '' ) ;
+	//
+	// 	if ( $site != '' ) $qs->config->site = $site ;
+	// 	$user_id = $qs->getUserIDfromNameAndToken ( $username , $token ) ;
+	// 	if ( !isset($user_id) ) {
+	// 		unset ( $out['data'] ) ;
+	// 		fin ( "User name and token do not match" ) ;
+	// 	}
+	//
+	// 	$batch_id = $qs->addBatch ( $out['data']['commands'] , $user_id , $batchname , $site ) ;
+	// 	unset ( $out['data'] ) ;
+	// 	if ( $batch_id === false ) {
+	// 		$out['status'] = $qs->last_error_message ;
+	// 	} else {
+	// 		$out['batch_id'] = $batch_id ;
+	// 	}
+	// }
+
 
 } else if ( $action == 'oauth_redirect' ) {
 
@@ -126,11 +145,11 @@ if ( $action == 'import' ) {
 } else if ( $action == 'get_batches_info' ) {
 
 	$out['debug'] = $_REQUEST ;
-	
+
 	$user = get_request ( 'user' , '' ) ;
 	$limit = get_request ( 'limit' , '20' ) * 1 ;
 	$offset = get_request ( 'offset' , '0' ) * 1 ;
-	
+
 	$db = $qs->getDB() ;
 	$sql = "SELECT DISTINCT batch.id AS id, ts_last_change FROM batch" ;
 	if ( $user != '' ) $sql .= ",user" ;
@@ -159,7 +178,7 @@ if ( $action == 'import' ) {
 	$filter = get_request ( 'filter' , '' ) ;
 
 	$db = $qs->getDB() ;
-	$sql = "SELECT * FROM command WHERE batch_id={$batch_id} AND num>={$start}" ; // num BETWEEN {$start} AND {$end}
+	$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id={$batch_id} AND num>={$start}" ; // num BETWEEN {$start} AND {$end}
 	if ( $filter != '' ) {
 		$filter = explode ( ',' , $filter ) ;
 		foreach ( $filter AS $k => $v ) {
@@ -203,11 +222,11 @@ if ( $action == 'import' ) {
 } else if ( $action == 'start_batch' or $action == 'stop_batch' ) {
 
 	$batch_id = get_request ( 'batch' , 0 ) * 1 ;
-	
+
 	$res = false ;
 	if ( $action == 'start_batch' ) $res = $qs->userChangeBatchStatus ( $batch_id , 'INIT' ) ;
 	if ( $action == 'stop_batch' )  $res = $qs->userChangeBatchStatus ( $batch_id , 'STOP' ) ;
-	
+
 	if ( !$res ) {
 		$out['status'] = $qs->last_error_message ;
 	}

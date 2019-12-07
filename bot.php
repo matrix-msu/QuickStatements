@@ -1,4 +1,3 @@
-#!/usr/bin/php
 <?PHP
 //set_time_limit(0);
 ini_set('max_execution_time', 0); // 0 = Unlimited
@@ -14,9 +13,20 @@ function checkAndRunSingleBatch(){
 		$sql = "SELECT * FROM batch WHERE id = " . $_GET['id'];
 		$query = $db->query($sql);
 		$result = $query->fetch_object();
-		
+
 		if (!$result) {
 			echo('Error: Specified id from URL parameter does not exist in the database.<br>');
+			die;
+		}
+
+		$sql = "SELECT count(*) AS cnt from batch WHERE status='RUN_SEQUENTIAL'" ;
+		if(!$result2 = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		$o = $result2->fetch_object() ;
+		if ( $o->cnt > 0 ) {
+			echo "There is already a sequential batch running.";
 			die;
 		}
 
@@ -31,15 +41,15 @@ function checkAndRunSingleBatch(){
 			echo('Error: The specified batch id "'. $_GET['id'] .'" has already been processed (has a status of DONE).');
 			die;
 		}
-		
+
 		while(1) {
 			$qs2 = new QuickStatements;
-			
+
 			if ( !$qs2->runNextCommandInBatchSequential($result->id) )
 				return 0;
-			
+
 			$status = $qs2->getBatchStatus( [$result->id] );
-			if ( $status[$result->id]['batch']->status != 'RUN' )
+			if ( $status[$result->id]['batch']->status != 'RUN_SEQUENTIAL' )
 				return 1;
 		}
 

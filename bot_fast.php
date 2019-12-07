@@ -1,10 +1,35 @@
-#!/usr/bin/php
 <?PHP
 
 ini_set('max_execution_time', 0); // 0 = Unlimited
 ini_set('memory_limit','-1');
 
 require_once ( __DIR__ . '/public_html/quickstatements.php' ) ;
+
+if( isset($argv[1]) ){
+	$_GET['single_batch'] = 1;
+	$_GET['id'] = $argv[1];
+	$_GET['bypass'] = $argv[2];
+}
+
+function messageDb($msg){
+	$servername = "localhost";
+	$username = "josh";
+	$password = "joshPassw0rd!";
+	$dbname = "quickstatement_josh";
+	$conn = new mysqli($servername, $username, $password, $dbname);
+	if ($conn->connect_error) {
+		die("Connection failed: " . $conn->connect_error);
+	}
+	$sql = "INSERT INTO test (msg)
+		 VALUES ('$msg')";
+
+	if ($conn->query($sql) === TRUE) {
+		echo "New record created successfully";
+	} else {
+		echo "Error: " . $sql . "<br>" . $conn->error;
+	}
+	$conn->close();
+}
 
 function checkAndRunSingleBatch(){
 	if ( isset($_GET['single_batch']) && isset($_GET['id']) ) {
@@ -21,8 +46,8 @@ function checkAndRunSingleBatch(){
 		}
 
 		if ( $result->status == 'INIT' || $result->status == 'STOP') {
-			// sets the batch status to RUN
-			if ( !$qs->startBatch($result->id) ) {
+			// queue the batch
+			if ( !$qs->queueBatch($result->id) ) {
 				echo 'died';
 				print "{$result->id}: " . $qs->last_error_message."\n" ;
 				return 0;
@@ -32,7 +57,14 @@ function checkAndRunSingleBatch(){
 			die;
 		}
 
-		// echo 'before bot spawn<br><br><br>';
+		$isBatchRunning = $qs->checkForRunFastStatus($result->id);
+
+		if( $isBatchRunning && !isset($_GET['bypass']) ){
+			die; // queue the batch instead of injest
+		}
+
+
+		$qs->setStatusToRunFast($result->id);
 
 		$max_num_bots = 60;
 		if( $max_num_bots > $result->total_rows ){
@@ -40,13 +72,11 @@ function checkAndRunSingleBatch(){
 		}
 
 		for($i=1;$i<=$max_num_bots;$i++){
-			// echo "before botcall: ".time()."<br>";
-			//echo exec("/opt/local/bin/php botChild.php ".$count." 2>&1", $out, $v);
 			echo exec("/opt/local/bin/php botChild.php $i {$result->id} $max_num_bots {$result->total_rows} >/dev/null 2>&1 &", $out, $v);
-			// echo "after botcall:... ".time()."<br><br>";
 		}
+		$i = $i -1;
+		echo "bots spawned: $i<br>";
 
-		// echo '<br><br><br>after bot spawn';
 		return 1;
 	} else {
 		echo '<br>';
@@ -60,7 +90,7 @@ function checkAndRunSingleBatch(){
 
 
 if ( checkAndRunSingleBatch() ) {
-	echo('Finished a batch. Stopping the bot.');
+	echo('Started a batch.');
 }
 
 ?>
