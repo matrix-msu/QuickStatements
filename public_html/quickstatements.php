@@ -1729,8 +1729,8 @@ class QuickStatements {
 		}
 
 		if ( preg_match ( '/^([\+\-]{0,1}\d+(\.\d+){0,1})(U(\d+)){0,1}$/' , $v , $m ) ) { // Quantity
-			echo json_encode(array('quantity match', $v, $m));
-			die;
+			// echo json_encode(array('quantity match', $v, $m));
+			// die;
 			$cmd['datavalue'] = array ( "type"=>"quantity" , "value"=>array(
 				"amount" => $m[1] ,
 				"unit" => isset( $m[4] ) ? "http://www.wikidata.org/entity/Q{$m[4]}" : "1"
