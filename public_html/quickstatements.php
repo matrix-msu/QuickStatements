@@ -1400,6 +1400,7 @@ class QuickStatements {
 			}
 			$first = strtoupper(trim($cols[0])) ;
 			if ( count ( $cols ) >= 3 and ( $this->isValidItemIdentifier($first) or $first == 'LAST' ) and $this->isValidItemIdentifier($cols[1]) ) {
+
 				$tmpRowNum = $rowNum;
 				if( $first == 'LAST' ){
 					$tmpRowNum = $lastCreateRowNum;
@@ -1417,7 +1418,6 @@ class QuickStatements {
 				$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>'statement', 'rowNum' => $tmpRowNum ) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
 				$this->parseValueV1 ( $cols[2] , $cmd ) ;
-
 				// Remove base statement
 				array_shift ( $cols ) ;
 				array_shift ( $cols ) ;
@@ -1432,12 +1432,12 @@ class QuickStatements {
 						$what = $m[1] == 'S' ? 'sources' : 'qualifier' ;
 						$num = $m[2] ;
 
-						// Store previous one, and reset
+						$skip_add_command = true; //always skip base statement
 						if ( !$skip_add_command ) $ret['data']['commands'][] = $cmd ;
 						$skip_add_command = false ;
-						$last_command = $ret['data']['commands'][count($ret['data']['commands'])-1] ;
+						//$last_command = $ret['data']['commands'][count($ret['data']['commands'])-1] ;
 
-						$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>$what , 'datavalue'=>$last_command['datavalue'], 'rowNum' => $tmpRowNum ) ;
+						$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>$what , 'datavalue'=>$cmd['datavalue'], 'rowNum' => $tmpRowNum ) ;
 						$dummy = array() ;
 						$this->parseValueV1 ( $value , $dummy ) ; // TODO transfer error message
 						$dv = array ( 'prop' => 'P'.$num , 'value' => $dummy['datavalue'] ) ;
