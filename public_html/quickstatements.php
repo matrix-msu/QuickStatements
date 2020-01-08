@@ -1432,10 +1432,16 @@ class QuickStatements {
 						$what = $m[1] == 'S' ? 'sources' : 'qualifier' ;
 						$num = $m[2] ;
 
-						$skip_add_command = true; //always skip base statement
+						//always skip base statement
+						// $skip_add_command = true; 
+						// if ( !$skip_add_command ) $ret['data']['commands'][] = $cmd ;
+						// $skip_add_command = false ;
+						// //$last_command = $ret['data']['commands'][count($ret['data']['commands'])-1] ;
+
+						// normal
 						if ( !$skip_add_command ) $ret['data']['commands'][] = $cmd ;
 						$skip_add_command = false ;
-						//$last_command = $ret['data']['commands'][count($ret['data']['commands'])-1] ;
+						$last_command = $ret['data']['commands'][count($ret['data']['commands'])-1] ;
 
 						$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>$what , 'datavalue'=>$cmd['datavalue'], 'rowNum' => $tmpRowNum ) ;
 						$dummy = array() ;
