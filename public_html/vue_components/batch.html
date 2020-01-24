@@ -67,13 +67,13 @@ div.create_batch_box > div {
 					</div>
 					<div v-if='(meta.commands.ERROR||0)>0'>, {{(meta.commands.ERROR||0)}} <span tt='errors'></span></div>
 				</div>
-				
-				
-				
+
+
+
 				<div style='display:flex;flex-direction:row;margin-bottom:0.5rem;'>
-					<div v-if='meta.batch.status=="STOP" || meta.batch.status=="INIT" || meta.batch.status == "RUN"'>
-						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Start Bot (Sequential)</button>
-						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Start Bot (Fast)</button>
+					<div v-if='meta.batch.status=="STOP" || meta.batch.status=="INIT" || meta.batch.status=="RUN" || meta.batch.status == "RUN_FAST"  || meta.batch.status == "RUN_SEQUENTIAL" || meta.batch.status == "QUEUED" '>
+						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Start Sequential Bot</button>
+						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Add to Fast Batch Queue</button>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-danger'  @click='stopBatch' v-bind:disabled="batchCommandsDisabled || !isBatchStoppable()">STOP</button>
 						<span v-else>
 							<span tt='original_submitter_hint'></span>
@@ -93,7 +93,7 @@ div.create_batch_box > div {
 						</span>
 					</div>
 				</div>
-				
+
 				<div style='margin-top:0.5rem;padding-top:0.5rem;border-top:2px solid #DDD'>
 					<batch-commands :batch='meta.batch' @load-command='loadCommand($event)'></batch-commands>
 				</div>
@@ -111,7 +111,7 @@ div.create_batch_box > div {
 				</form>
 
 				<div>
-					<textarea v-model='commands' rows=15 class='form-control' style='width:100%;font-family:monospace;'></textarea>
+					<input id="fileImport" type="file" v-model='commands' rows=15 class='form-control' style='width:100%;font-family:monospace;'></textarea>
 				</div>
 				<div>
 					<button class='btn btn-outline-primary' @click.prevent='importV1' tt='dialog_import_v1' id="import-v1"></button>
@@ -160,20 +160,20 @@ let BatchPage = Vue.extend ( {
 	mixins : [ batch_access_mixin ] ,
 	data : () => {
 		return {
-			api:'./api.php' , 
-			ready:false , 
-			commands:'' , 
+			api:'./api.php' ,
+			ready:false ,
+			commands:'' ,
 			run:{
 				is_running_in_browser:false,
 				last_item:'',
 				temp_id:'',
 				start_ts:'',
 				last_ts:''
-			} , 
+			} ,
 			direct_command_delay_ms:1,
 			batchCommandsDisabled: false,
 			batchProcesed: true
-		} 
+		}
 	} ,
     created : function () {
     	var me = this ;
@@ -209,11 +209,14 @@ let BatchPage = Vue.extend ( {
     methods : {
 		isBatchProcessed: function() {
 			var me = this;
-			
+
 			if (
 				me.meta.batch.status === 'INIT' ||
 				me.meta.batch.status === 'STOP' ||
 				me.meta.batch.status === 'RUN' ||
+				me.meta.batch.status === 'RUN_SEQUENTIAL' ||
+				me.meta.batch.status === 'RUN_FAST' ||
+				me.meta.batch.status === 'QUEUED' ||
 				me.meta.batch.status === 'DONE'
 			) {
 				return true;
@@ -221,17 +224,19 @@ let BatchPage = Vue.extend ( {
 			else {
 				return false;
 			}
-			
+
 		},
 		isBatchRunnable: function() {
 			var stat = this.meta.batch.status;
-			
+
 			return (stat === 'INIT') || (stat === 'STOP');
 		},
 		isBatchStoppable: function() {
 			var stat = this.meta.batch.status;
-			
-			return (stat === 'RUN');
+
+			// console.log('is stop', stat)
+
+			return (stat === 'RUN') || (stat === 'RUN_SEQUENTIAL') || (stat === 'RUN_FAST') || (stat === 'QUEUED');
 		},
 		updateWDforSite : function () {
     		var me = this ;
@@ -275,27 +280,33 @@ let BatchPage = Vue.extend ( {
 			me.updateWDforSite() ;
     	} ,
     	importV1 : function () {
-			//console.log('v1', $('.btn-outline-primary').eq(1))
-			//$('.btn-outline-primary').html('Submit Batch');
-    		
-			document.getElementById('import-v1').setAttribute('disabled', '');
-			
+			var fileForUpload = document.getElementById('fileImport');
+			var fileContents = fileForUpload.files.item(0);
+			var reader = new FileReader();
 			var me = this ;
-    		$('#working').show() ;
-			$.post ( me.api , {
-				action:'import',
-				data:me.commands,
-				compress:1,
-				format:'v1',
-				persistent:0,
-			} , function ( d ) {
-				$('#working').hide() ;
-				if ( d.data.commands.length == 0 ) {
-					alert ( "No valid commands found" ) ;
-					return ;
-				}
-				me.processParsedCommands ( d ) ;
-			} , 'json' ) ;
+			reader.onload = function(event) {
+			    //var contents = ;
+				document.getElementById('import-v1').setAttribute('disabled', '');
+				$('#working').show() ;
+				$.post ( me.api , {
+					action:'import',
+					data:event.target.result,
+					compress:1,
+					format:'v1',
+					persistent:0,
+				} , function ( d ) {
+					$('#working').hide() ;
+					// $('.navbar').after("<h1>YOUR BATCH WAS TOO BIG");
+					me.$router.push ( '/batch/'+d.batch_id );
+					//alert("after router");
+				} , 'json' ).fail(function(){
+					alert("Import Failed! Your batch was probably too big.");
+				}) ;
+			};
+			reader.onerror = function(event) {
+			    console.error("File could not be read! Code " + event.target.error.code);
+			};
+			reader.readAsText(fileContents);
     	} ,
     	importCSV : function () {
     		var me = this ;
@@ -327,9 +338,10 @@ let BatchPage = Vue.extend ( {
         } ,
 		startBotSequential : function () {
 			var me = this;
-			
-			this.meta.batch.status = 'RUN';
-			
+			var initialStat = this.meta.batch.status;
+
+			this.meta.batch.status = 'RUN_SEQUENTIAL';
+
 			$('.btn-bot-start').hide();
 			 //var handle =window.open('../bot.php?single_batch=1',
 			$.ajax({
@@ -337,6 +349,9 @@ let BatchPage = Vue.extend ( {
 				success: function(result){
 					console.log('start bot seq suc');
 					console.log(result);
+					if( result == "There is already a sequential batch running." ){
+						me.meta.batch.status = initialStat;
+					}
 				}
 			});
 			// var handle =window.open('../bot.php?single_batch=1', '_blank', "location=yes,height=570,width=520,scrollbars=yes,status=yes");
@@ -344,9 +359,9 @@ let BatchPage = Vue.extend ( {
 		},
 		startBotFast : function () {
 			var me = this;
-			
-			this.meta.batch.status = 'RUN';
-			
+
+			this.meta.batch.status = 'QUEUED';
+
 			console.log('start bot fast')
 			$('.btn-bot-start').hide();
 			$.ajax({
@@ -359,7 +374,7 @@ let BatchPage = Vue.extend ( {
 		},
         stopBatch : function () {
         	var me = this ;
-			
+
         	if ( me.meta.batch.id == 0 ) { // In browser
         		me.meta.batch.status = 'STOP' ;
         	} else {
@@ -573,16 +588,16 @@ let BatchPage = Vue.extend ( {
 			//							true, false, false, false, 0, null);
 			//a.dispatchEvent(evt);
 			//chrome.tabs.create({ url: "http://www.google.com/", selected: false });
-			
+
 			var me = this ;
-			
+
 			me.batchCommandsDisabled = true;
-						
+
     		if ( !me.startRun(false) ) {
 				console.log('in here here');
 				return ;
 			}
-			
+
     		if ( me.meta.batch.id > 0 ) {
 				let params = { action:'start_batch' , batch:me.meta.batch.id } ;
     			$('#working').show() ;
@@ -595,7 +610,7 @@ let BatchPage = Vue.extend ( {
 					}
 					me.loadBatchInfo(me.meta.batch.id) ;
 				} , 'json' ) ;
-				
+
 				return ;
     		}
 
