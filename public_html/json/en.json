@@ -50,7 +50,7 @@
    "error":"error",
    "done":"done",
    "of":"of",
-   "create_new_batch":"Create new command batch for",
+   "create_new_batch":"Create new command batch",
    "bc_start":"First",
    "bc_end":"Last",
    "bc_previous":"Previous",

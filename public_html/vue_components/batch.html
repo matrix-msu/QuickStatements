@@ -100,12 +100,12 @@ div.create_batch_box > div {
 			</div>
 			<div v-else-if='user.canCreateBatch()' class='create_batch_box'>
 				<form class='form-inline'>
-					<span tt='create_new_batch'></span>
-					<select class='form-control' v-model='meta.batch.site' style='margin-left:10px;margin-right:10px'>
+					<span tt='create_new_batch'></span>&nbsp;
+					<!-- <select class='form-control' v-model='meta.batch.site' style='margin-left:10px;margin-right:10px'>
 						<option v-for='(sd,sid) in config.sites' :value='sid'>
 							{{sd.label}}
 						</option>
-					</select>
+					</select> -->
 					<span tt='as'></span>
 					<input type='text' class='form-control' v-model='meta.batch.name' style='margin-left:10px' tt_placeholder='ph_batch_name' />
 				</form>
@@ -294,6 +294,7 @@ let BatchPage = Vue.extend ( {
 					compress:1,
 					format:'v1',
 					persistent:0,
+					name: me.meta.batch.name
 				} , function ( d ) {
 					$('#working').hide() ;
 					// $('.navbar').after("<h1>YOUR BATCH WAS TOO BIG");
