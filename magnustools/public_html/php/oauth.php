@@ -436,7 +436,8 @@ class MW_OAuth {
 			'oauth_signature_method' => 'HMAC-SHA1',
 		];
 
-		if ( isset ( $_REQUEST['test'] ) ) {
+		$hardTest = false;
+		if ( $hardTest ) {
 			print "<pre>" ;
 			print "!!\n" ;
 //			print_r ( $headerArr ) ;
@@ -474,6 +475,7 @@ class MW_OAuth {
 			$post_fields = http_build_query( $post ) ;
 		}
 
+
 		curl_setopt( $ch, CURLOPT_POST, true );
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post_fields );
@@ -485,13 +487,25 @@ class MW_OAuth {
 
 		$data = curl_exec( $ch );
 
-		if ( isset ( $_REQUEST['test'] ) ) {
+		// if( $post_fields == "format=json&action=query&meta=tokens&maxlag=5" ){
+		//
+		// }elseif( $post_fields == "format=json&action=query&meta=userinfo&uiprop=blockinfo%7Cgroups%7Crights&maxlag=99999" ){
+		//
+		// }else{
+		// 	echo $post_fields;
+		// 	echo "<br><br>";
+		// 	echo $data;
+		// 	die;
+		// }
+
+		if ( $hardTest ) {
 			print "<hr/><h3>API query</h3>" ;
 //			print "URL:<pre>$url</pre>" ;
 //			print "Header:<pre>" ; print_r ( $header ) ; print "</pre>" ;
 			print "Payload:<pre>" ; print_r ( $post ) ; print "</pre>" ;
 			print "Result:<pre>" ; print_r ( $data ) ; print "</pre>" ;
 			print "<hr/>" ;
+			die;
 		}
 
 		if ( !$data ) return ;

@@ -71,8 +71,9 @@ div.create_batch_box > div {
 
 
 				<div style='display:flex;flex-direction:row;margin-bottom:0.5rem;'>
-					<div v-if='meta.batch.status=="STOP" || meta.batch.status=="INIT" || meta.batch.status=="RUN" || meta.batch.status == "RUN_FAST"  || meta.batch.status == "RUN_SEQUENTIAL" || meta.batch.status == "QUEUED" '>
+					<div v-if='meta.batch.status=="STOP" || meta.batch.status=="INIT" || meta.batch.status=="RUN" || meta.batch.status == "RUN_FAST"  || meta.batch.status == "RUN_SEQUENTIAL" || meta.batch.status == "RUN_SEQUENTIAL_BUCKET" || meta.batch.status == "QUEUED" '>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Start Sequential Bot</button>
+						<!-- <button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotBucketSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Start Edit Only Bot</button> -->
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Add to Fast Batch Queue</button>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-danger'  @click='stopBatch' v-bind:disabled="batchCommandsDisabled || !isBatchStoppable()">STOP</button>
 						<span v-else>
@@ -300,8 +301,13 @@ let BatchPage = Vue.extend ( {
 					// $('.navbar').after("<h1>YOUR BATCH WAS TOO BIG");
 					me.$router.push ( '/batch/'+d.batch_id );
 					//alert("after router");
-				} , 'json' ).fail(function(){
-					alert("Import Failed! Your batch was probably too big.");
+				} , 'json' ).fail(function(d){
+					console.log('failed import',d);
+					if( d.responseText.length > 0 ){
+						alert(d.responseText);
+					}else{
+						alert("Import Failed! Your batch was probably too big.");
+					}
 				}) ;
 			};
 			reader.onerror = function(event) {
@@ -347,6 +353,27 @@ let BatchPage = Vue.extend ( {
 			 //var handle =window.open('../bot.php?single_batch=1',
 			$.ajax({
 				url: `../bot.php?single_batch=1&id=${me.meta.batch.id}`,
+				success: function(result){
+					console.log('start bot seq suc');
+					console.log(result);
+					if( result == "There is already a sequential batch running." ){
+						me.meta.batch.status = initialStat;
+					}
+				}
+			});
+			// var handle =window.open('../bot.php?single_batch=1', '_blank', "location=yes,height=570,width=520,scrollbars=yes,status=yes");
+			// handle.blur();
+		},
+		startBotBucketSequential : function () {
+			var me = this;
+			var initialStat = this.meta.batch.status;
+
+			this.meta.batch.status = 'RUN_SEQUENTIAL_BUCKET';
+
+			$('.btn-bot-start').hide();
+			 //var handle =window.open('../bot.php?single_batch=1',
+			$.ajax({
+				url: `../bot_bucket.php?single_batch=1&id=${me.meta.batch.id}`,
 				success: function(result){
 					console.log('start bot seq suc');
 					console.log(result);

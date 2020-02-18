@@ -583,6 +583,154 @@ class QuickStatements {
 	}
 
 
+
+
+	public function runNextCommandInBatchSequentialBucket ( $batch_id, $inputRowNum ) {
+		// echo 'in run func';
+		$db = $this->getDB() ;
+		// var_dump($db);
+		// echo $batch_id;
+
+		$sql = "SELECT batch.last_item,user.id AS user_id,user.name AS user_name FROM batch,user WHERE batch.id=$batch_id AND user.id=batch.user" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+
+
+
+		// echo 'after ';
+		$o = $result->fetch_object() ;
+
+		$this->last_item = $o->last_item ;
+		$this->user_id = $o->user_id ;
+		$this->user_name = $o->user_name ;
+		$ts = $this->getCurrentTimestamp() ;
+
+		//$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') ORDER BY num LIMIT 1" ;
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$inputRowNum ORDER BY num";
+		//todo:
+		//bucket edit isn't working when you have two different buckets
+		//make this select only grab commands from the current row/bucket
+
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		$o = $result->fetch_object() ;
+
+		if ( $o == NULL ) { // Nothing more to do
+			$sql = "UPDATE batch SET status='DONE',last_item='',message='',ts_last_change='$ts' WHERE id=$batch_id" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+			return true ;
+		}
+
+		$isBucket = false;
+		$rows[] = $o;
+		while( $test = $result->fetch_object() ){
+			$rows[] = $test;
+			$isBucket = true;
+		}
+
+		// var_dump($rows);die;
+
+		// load OAuth, if available
+		if ( $this->use_user_oauth_for_batch_edits ) {
+			$sql = "SELECT serialized FROM batch_oauth WHERE batch_id=$batch_id" ;
+			if($result = $db->query($sql)) {
+				$oauth = $result->fetch_object() ;
+				if ( $oauth !== NULL ) {
+					//var_dump($oauth->serialized);
+					//die;
+					$oa = unserialize($oauth->serialized) ;
+					if ( $oa === false ) {
+						$this->log( "Could not unserialize OAuth information for batch $batch_id:\n".$oauth->serialized );
+						$this->use_oauth = false ;
+					} else {
+						$this->setOA( $oa ) ;
+					}
+				} else {
+					// no OAuth information for this batch – perfectly normal for older batches, don’t log
+					$this->use_oauth = false ;
+				}
+			} else {
+				$this->log( "Could not load OAuth information for batch $batch_id [" . $db->error . ']' );
+				$this->use_oauth = false ;
+			}
+		}
+
+		// Update status
+		$sql = "UPDATE command_{$batch_id} SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND row_num={$o->row_num}";
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+
+		//prep command
+		$summary = "[[:toollabs:quickstatements/#/batch/{$batch_id}|batch #{$batch_id}]] by [[User:{$this->user_name}|]]" ;
+		$cmd = json_decode ( $o->json ) ;
+		if ( !isset($cmd->summary) ) $cmd->summary = $summary ;
+		else $cmd->summary .= '; ' . $summary ;
+		// $this->use_oauth = false;
+
+		//var_dump($isBucket);
+		// Run command
+		if($isBucket == true){
+			//echo 'run bucket';die;
+			$this->runBucketCommand ( $cmd, $rows ) ;
+		}else{
+			// echo 'before run single command';
+			// var_dump($o);
+			// die;
+			$this->runSingleCommand ( $cmd ) ;
+		}
+
+		// Update batch status
+		$db = $this->getDB() ;
+		$ts = $this->getCurrentTimestamp() ;
+		$sql = "UPDATE batch SET status='RUN',ts_last_change='$ts',last_item='{$this->last_item}' WHERE id=$batch_id AND status IN ('INIT','RUN')" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+
+		// Update command status
+		$status = strtoupper ( $cmd->status ) ;
+		$msg = isset($cmd->message) ? $cmd->message : '' ;
+		$message = '';
+		if( $msg != '' ){
+			$message = ",message='".$msg."'";
+		}
+		// echo "command message:";
+		// var_dump($msg);
+		$sql = "UPDATE command_{$batch_id} SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE batch_id=$batch_id AND row_num={$o->row_num}";
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		// Batch done?
+		$sql = "SELECT count(*) AS cnt FROM command_{$batch_id} WHERE batch_id=$batch_id AND status NOT IN ('ERROR','DONE')" ;
+		if(!$result = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		$o = $result->fetch_object() ;
+		if ( $o->cnt == 0 ) {
+			$sql = "UPDATE batch SET status='DONE',last_item=''".$message." WHERE id=$batch_id" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+		}
+
+		return true ;
+
+	}
+
+
 	public function getToken ( $user_name ) {
 		$db = $this->getDB() ;
 		$token = '' ;
@@ -1083,6 +1231,7 @@ class QuickStatements {
 		return $q ;
 	}
 
+
 	protected function commandAddStatement ( $command , $i , $statement_id ) {
 		// Paranoia
 		if ( isset($statement_id) ) return $this->commandDone ( $command , "Statement already exists as $statement_id" ) ;
@@ -1344,6 +1493,148 @@ class QuickStatements {
 	}
 
 
+	public function runBucketCommand ( $command, $rows ) {
+		if ( $this->sleep != 0 ) sleep ( $this->sleep ) ;
+		if ( !isset($command) ) return $this->commandError ( $command , "Empty command" ) ;
+		$command->status = 'working' ;
+		if ( isset($command->error) ) unset ( $command->error ) ;
+		if ( isset($this->temporary_batch_id) ) {
+			if ( isset($command->summary) ) $command->summary .= ' ' . $this->temporary_batch_id ;
+			else $command->summary = $this->temporary_batch_id ;
+		}
+
+		//combine sql return into one object that wbedit likes
+		// is array with 2 objects as values
+		$claimsArray = array();
+		$descriptionsArray = array();
+		$aliasArray = array();
+		$labelsArray = array();
+		foreach($rows as $line){
+			$data = json_decode($line->json,true);
+			if(isset($data['automaticallyAddedBaseStatement'])){
+				continue;
+			}
+			$what = $data['what'];
+			$item = $data['item'];
+
+			if( $what == 'statement' ){
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$claimsArray[] = array('mainsnak'=>array('snaktype'=>"value",'property'=>$property,'datavalue'=>$datavalue),'type'=>'statement','rank'=>'normal');
+			}else if( $what == 'qualifier' ){
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$qualifier = $data['qualifier'];
+				$objectData = json_decode($line->json);
+				$statement_id = $this->getStatementID ( $objectData ) ;
+
+				$claimIndex = -1;
+				foreach( $claimsArray as $index => $claim ){
+					if( $claim['id'] == $statement_id ){
+						$claimIndex = $index;
+						break;
+					}
+				}
+				if( $claimIndex != -1 ){
+					$claimsArray[$claimIndex]['qualifiers'][] = array('property'=>$qualifier['prop'],'snaktype'=>'value','datavalue'=>$qualifier['value']);
+				}else{
+					$claimsArray[] = array(
+						'id'=>$statement_id,
+						'mainsnak'=>array('snaktype'=>"value",'property'=>$property,'datavalue'=>$datavalue),
+						'type'=>'statement',
+						'rank'=>'normal',
+						'qualifiers'=>array(array('property'=>$qualifier['prop'],'snaktype'=>'value','datavalue'=>$qualifier['value']))
+					);
+				}
+			}else if( $what == 'sources' ){
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$sources = $data['sources'];
+				$objectData = json_decode($line->json);
+				$statement_id = $this->getStatementID ( $objectData ) ;
+
+				// var_dump($sources);die;
+
+				$claimIndex = -1;
+				foreach( $claimsArray as $index => $claim ){
+					if( $claim['id'] == $statement_id ){
+						$claimIndex = $index;
+						break;
+					}
+				}
+				if( $claimIndex != -1 ){
+					$claimsArray[$claimIndex]['references'][0]['snaks'][$sources[0]['prop']] =
+						array(
+							array('property'=>$sources[0]['prop'],'snaktype'=>'value','datavalue'=>$sources[0]['value'])
+						);
+				}else{
+					$claimsArray[] = array(
+						'id'=>$statement_id,
+						'mainsnak'=>array('snaktype'=>"value",'property'=>$property,'datavalue'=>$datavalue),
+						'type'=>'statement',
+						'rank'=>'normal',
+						'references'=>
+							array(
+								array('snaks'=>
+									array($sources[0]['prop']=>
+										array(
+											array('property'=>$sources[0]['prop'],'snaktype'=>'value','datavalue'=>$sources[0]['value'])
+										)
+									)
+								)
+							)
+					);
+				}
+			}else if( $what == 'description' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$descriptionsArray[$language] = array('language'=>$language,'value'=>$value);
+			}else if( $what == 'alias' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$aliasArray[$language] = array('language'=>$language,'value'=>$value);
+			}else if( $what == 'label' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$labelsArray[$language] = array('language'=>$language,'value'=>$value);
+			}
+			//todo: maybe add sitelink eventually
+			//todo: definitely add references..
+		}
+		// echo json_encode($claimsArray);die;
+		$bucketCommand = array();
+		if( !empty($claimsArray) ){
+			$bucketCommand['claims'] = $claimsArray;
+		}
+		if( !empty($descriptionsArray) ){
+			$bucketCommand['descriptions'] = $descriptionsArray;
+		}
+		if( !empty($aliasArray) ){
+			$bucketCommand['aliases'] = $aliasArray;
+		}
+		if( !empty($labelsArray) ){
+			$bucketCommand['labels'] = $labelsArray;
+		}
+		$command->data = $bucketCommand;
+
+		$data = '{}' ;
+		if ( isset($command->data) ) $data = json_encode ( $this->array2object ( $command->data ) ) ;
+		$this->runAction ( array (
+			'action' => 'wbeditentity' ,
+			'id' => $command->item ,
+			'data' => $data ,
+			'summary' => ''
+		) , $command ) ;
+		if ( $command->status != 'done' ) {
+			$this->last_item = '' ; // Ensure subsequent commands will fail
+			return $command ;
+		}
+		$this->last_item = $command->item ;
+		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
+		return $command ;
+	}
+
+
 	protected function propagateLastItem ( $command ) {
 		$values = [ $command->datavalue ];
 		if ( isset($command->qualifier->value) ) {
@@ -1377,6 +1668,7 @@ class QuickStatements {
 		$rowNum = 0;
 		$lastCreateRowNum = -1;
 		$editedQids = array();
+		$labelDescriptionValidationArray = array();
 
 		foreach ( $rows as $row ) {
 			$rowNum++;
@@ -1413,8 +1705,14 @@ class QuickStatements {
 					}
 					$tmpRowNum = $editedQids[$first];
 				}
-
 				$prop = strtoupper(trim($cols[1])) ;
+				//just check if label or description and add to the most recent array
+				if( $prop == 'LEN' ){
+					$labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1]['len'] = $cols[2];
+				}
+				if( $prop == 'DEN' ){
+					$labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1]['den'] = $cols[2];
+				}
 				$cmd = array ( 'action'=>$action , 'item'=>$first , 'property'=>$prop , 'what'=>'statement', 'rowNum' => $tmpRowNum ) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
 				$this->parseValueV1 ( $cols[2] , $cmd ) ;
@@ -1433,13 +1731,16 @@ class QuickStatements {
 						$num = $m[2] ;
 
 						//always skip base statement
-						// $skip_add_command = true; 
+						// $skip_add_command = true;
 						// if ( !$skip_add_command ) $ret['data']['commands'][] = $cmd ;
 						// $skip_add_command = false ;
 						// //$last_command = $ret['data']['commands'][count($ret['data']['commands'])-1] ;
 
 						// normal
-						if ( !$skip_add_command ) $ret['data']['commands'][] = $cmd ;
+						if ( !$skip_add_command ){
+							$cmd['automaticallyAddedBaseStatement'] = true;
+							$ret['data']['commands'][] = $cmd;
+						}
 						$skip_add_command = false ;
 						$last_command = $ret['data']['commands'][count($ret['data']['commands'])-1] ;
 
@@ -1452,6 +1753,10 @@ class QuickStatements {
 //$ret['debug'][] = array ( $what , $last_command['what'] ) ;
 						if ( $what == 'sources' and $last_command['what'] == $what ) {
 							$ret['data']['commands'][count($ret['data']['commands'])-1][$what][] = $cmd[$what][0] ;
+							echo 'last ret';
+							var_dump($ret['data']['commands']);
+							die;
+
 							$skip_add_command = true ;
 //							$last_command[$what][] = $cmd[$what][0] ;
 						}
@@ -1472,6 +1777,14 @@ class QuickStatements {
 						$rowNum--;
 					}
 					$tmpRowNum = $editedQids[$first];
+				}
+				$prop = strtoupper(trim($cols[1])) ;
+				//just check if label or description and add to the most recent array
+				if( $prop == 'LEN' ){
+					$labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1]['len'] = $cols[2];
+				}
+				if( $prop == 'DEN' ){
+					$labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1]['den'] = $cols[2];
 				}
 				$cmd = array ( 'action'=>$action , 'what'=>$this->actions_v1[$code] , 'item'=>$first, 'rowNum' => $tmpRowNum ) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
@@ -1496,6 +1809,19 @@ class QuickStatements {
 				}else{
 					$value22 = '';
 				}
+				//check if the last finished array matches any other array in the array
+				//error if it does
+				//if not, start a new arrary (below)
+				if( !empty($labelDescriptionValidationArray) ){
+					$temp = $labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1];
+					$temp = json_encode($temp);
+					$labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1] = $temp;
+					if(count($labelDescriptionValidationArray) !== count(array_unique($labelDescriptionValidationArray))){
+						echo "Error! Your batch has at least one duplicate label/description combination.";
+						die;
+					}
+				}
+				$labelDescriptionValidationArray[] = array();
 				$lastCreateRowNum = $rowNum;
 				$cmd = array ( 'action'=>'create' , 'type'=>'item', 'create-id'=>$value22, 'rowNum' => $rowNum) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
@@ -1506,7 +1832,23 @@ class QuickStatements {
 			}
 
 			if ( isset($cmd['action']) && !$skip_add_command ) $ret['data']['commands'][] = $cmd ;
+			// echo 'final commands';
+			// var_dump($ret['data']['commands']);
+			// die;
 		}
+		if( !empty($labelDescriptionValidationArray) ){
+			$temp = $labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1];
+			$temp = json_encode($temp);
+			$labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1] = $temp;
+			if(count($labelDescriptionValidationArray) !== count(array_unique($labelDescriptionValidationArray))){
+				echo "Error! Your batch has at least one duplicate label/description combination.";
+				die;
+			}
+		}
+		// echo 'after import';
+		// var_dump($labelDescriptionValidationArray);
+		// array_unique($labelDescriptionValidationArray);
+		// die;
 //		if ( $this->use_command_compression ) $ret['data']['commands'] = $this->compressCommands ( $ret['data']['commands'] ) ;
 	}
 
