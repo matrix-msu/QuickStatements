@@ -1821,7 +1821,7 @@ class QuickStatements {
 						die;
 					}
 				}
-				$labelDescriptionValidationArray[] = array();
+				$labelDescriptionValidationArray[] = array('den'=>'','len'=>'');
 				$lastCreateRowNum = $rowNum;
 				$cmd = array ( 'action'=>'create' , 'type'=>'item', 'create-id'=>$value22, 'rowNum' => $rowNum) ;
 				if ( $comment != '' ) $cmd['summary'] = $comment ;
