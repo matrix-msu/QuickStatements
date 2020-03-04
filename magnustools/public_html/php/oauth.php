@@ -408,7 +408,7 @@ class MW_OAuth {
 	 * @param object $ch Curl handle
 	 * @return array API results
 	 */
-	function doApiQuery( $post, &$ch = null , $mode = '' , $iterations_left = 5 , $last_maxlag = -1 ) {
+	function doApiQuery( $post, &$ch = null , $mode = '' , $iterations_left = 10 , $last_maxlag = -1 ) {
 		if ( $iterations_left <= 0 ) return ; // Avoid infinite recursion when Wikidata Is Too Damn Slow Again
 
 		global $maxlag ;
@@ -557,7 +557,7 @@ class MW_OAuth {
 				strpos($ret->error->info,'The authorization headers in your request are not valid') !== false
 			)
 		){
-			sleep(3);
+			sleep(25);
 			$ch = null ;
 			$ret = $this->doApiQuery( $post, $ch , '' , $iterations_left-1 , $last_maxlag ) ;
 		}

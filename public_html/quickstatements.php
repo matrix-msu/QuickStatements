@@ -1472,7 +1472,20 @@ class QuickStatements {
 				if ( $command->what == 'statement' ) return $this->commandAddStatement ( $command , $i , $statement_id ) ;
 
 				// THE FOLLOWING DEPEND ON AN EXISTING STATEMENT
-				if ( !isset($statement_id) ) return $this->commandError ( $command , "Base statement not found" ) ;
+				if ( !isset($statement_id) ){
+					$tryCount = 0;
+					while( $tryCount <=3 ){
+						sleep(5);
+						$statement_id = $this->getStatementID ( $command ) ;
+						if( isset($statement_id) ){
+							break;
+						}
+						$tryCount++;
+					}
+					if ( !isset($statement_id) ){
+						return $this->commandError ( $command , "Base statement not found" ) ;
+					}
+				}
 				if ( $command->what == 'qualifier' ) return $this->commandAddQualifier ( $command , $i , $statement_id ) ;
 				if ( $command->what == 'sources' ) return $this->commandAddSources ( $command , $i , $statement_id ) ;
 
@@ -1753,9 +1766,9 @@ class QuickStatements {
 //$ret['debug'][] = array ( $what , $last_command['what'] ) ;
 						if ( $what == 'sources' and $last_command['what'] == $what ) {
 							$ret['data']['commands'][count($ret['data']['commands'])-1][$what][] = $cmd[$what][0] ;
-							echo 'last ret';
-							var_dump($ret['data']['commands']);
-							die;
+							// echo 'last ret';
+							// var_dump($ret['data']['commands']);
+							// die;
 
 							$skip_add_command = true ;
 //							$last_command[$what][] = $cmd[$what][0] ;
