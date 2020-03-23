@@ -66,7 +66,7 @@ function checkAndRunSingleBatch(){
 
 		$qs->setStatusToRunFast($result->id);
 
-		$max_num_bots = 60;
+		$max_num_bots = 40;
 		if( $max_num_bots > $result->total_rows ){
 			$max_num_bots = $result->total_rows;
 		}
