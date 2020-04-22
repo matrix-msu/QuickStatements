@@ -52,7 +52,7 @@ function checkAndRunSingleBatch(){
 			$row_num++;
 
 			$status = $qs2->getBatchStatus( [$result->id] );
-			if ( $status[$result->id]['batch']->status != 'RUN_SEQUENTIAL_BUCKET' )
+			if ( $status[$result->id]['batch']->status != 'RUN_SEQUENTIAL' )
 				return 1;
 		}
 
