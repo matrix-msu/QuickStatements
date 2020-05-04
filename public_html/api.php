@@ -147,7 +147,7 @@ if ( $action == 'import' ) {
 	$out['debug'] = $_REQUEST ;
 
 	$user = get_request ( 'user' , '' ) ;
-	$limit = get_request ( 'limit' , '20' ) * 1 ;
+	$limit = get_request ( 'limit' , '2' ) * 1 ;
 	$offset = get_request ( 'offset' , '0' ) * 1 ;
 
 	$db = $qs->getDB() ;
@@ -159,7 +159,7 @@ if ( $action == 'import' ) {
 	if ( count($conditions) > 0 ) $sql .= ' WHERE ' . implode ( ' AND ' , $conditions ) ;
 
 	$sql .= " ORDER BY ts_last_change DESC" ;
-	$sql .= " LIMIT $limit" ;
+	// $sql .= " LIMIT $limit" ;
 	if ( $offset != 0 ) $sql .= " OFFSET $offset" ;
 
 	if(!$result = $db->query($sql)) {
