@@ -184,7 +184,7 @@ let BatchesPage = Vue.extend ( {
 					var me = this;
 					if ( new_position < 0 ) new_position = 0 ;
 					me.batches_position = new_position;
-					me.view_batches = me.batches.slice((me.batches_position*me.batches_display_count), ((me.batches_position+1)*me.batches_display_count) ).reverse();
+					me.view_batches = me.batches.slice((me.batches_position*me.batches_display_count), ((me.batches_position+1)*me.batches_display_count) );
 				},
 				onChangeWantedPage : function () {
 					let new_position =((1*this.wanted_page)-1);
