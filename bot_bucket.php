@@ -42,7 +42,11 @@ function checkAndRunSingleBatch(){
 			die;
 		}
 
-		$row_num = 1;
+		$id = $_GET['id'];
+		$sql = "SELECT row_num FROM command_$id WHERE status='INIT' ORDER BY id LIMIT 1";
+		$query = $db->query($sql);
+		$row_num = intval($query->fetch_object()->row_num);
+		
 		while(1) {
 			$qs2 = new QuickStatements;
 
