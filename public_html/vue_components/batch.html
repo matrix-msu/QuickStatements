@@ -62,7 +62,7 @@ div.create_batch_box > div {
 					</div>
 					<div>
 						{{Number((100*((meta.commands.DONE||0)*1+(meta.commands.ERROR||0)*1)/meta.batch.total_commands).toFixed(1))}}%
-						({{Number((meta.commands.DONE||0)*1+(meta.commands.RUN||0)*1).toFixed(0)}})
+						({{Number((meta.commands.DONE||0)*1).toFixed(0)}})
 						<span tt='of'></span> {{meta.batch.total_commands}} <span tt='done'></span>
 					</div>
 					<div v-if='(meta.commands.ERROR||0)>0'>, {{(meta.commands.ERROR||0)}} <span tt='errors'></span></div>
