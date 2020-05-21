@@ -11,10 +11,29 @@
 		<span tt='admin_hint'></span> <a href='./api.php?action=oauth_redirect'><span tt='login'></span></a>!
 	</div>
 
-	<table v-if='batches.length>0' class='table table-striped'>
+	<div class='position_button_bar'>
+	  <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+	    <div class="btn-group mr-2" role="group">
+	      <button type="button" class="btn btn-outline-secondary" v-if='batches_position>0' @click.prevent='setBatchesPosition(0)' tt='bc_start'></button>
+	      <button type="button" class="btn btn-outline-secondary" disabled v-else tt='bc_start'></button>
+	      <button type="button" class="btn btn-outline-secondary" v-if='batches_position>0' @click.prevent='setBatchesPosition(batches_position - 1)'  tt='bc_previous'></button>
+	    </div>
+	    <div class="btn-group mr-1" role="group">
+	      <span tt='page' style='margin-top:0.4rem;margin-right:0.2rem;'></span>
+	      <input v-model='wanted_page' @keyup='onChangeWantedPage' class='form-control' type='number' style='width:5rem;' />
+	    </div>
+	    <div class="btn-group mr-2" role="group">
+				<button type="button" class="btn btn-outline-secondary" v-if='batches_position<batches_size' @click.prevent='setBatchesPosition(batches_position + 1)' tt='bc_next'></button>
+	      <button type="button" class="btn btn-outline-secondary" v-if='batches_position<batches_size' @click.prevent='setBatchesPosition(batches_size)' tt='bc_end'></button>
+	      <button type="button" class="btn btn-outline-secondary" disabled v-else tt='bc_end'></button>
+	    </div>
+	  </div>
+	</div>
+
+	<table v-if='batches_size>0' class='table table-striped'>
 		<thead><tr><th>#</th><th tt='user'></th><th tt='name'></th><th tt='status'></th><th tt='last_change'></th><th tt='actions'></th></tr></thead>
 		<tbody>
-			<tr v-for='b in batches'>
+			<tr v-for='b in view_batches'>
 				<td>
 					<router-link :to='"/batch/"+b.batch.id'>#{{b.batch.id}}</router-link>
 				</td>
@@ -66,7 +85,7 @@
 let BatchesPage = Vue.extend ( {
     props : ['user_name'] ,
     data : () => {
-		return { 
+		return {
 			batches:{},
 			status_class:{
 		    	INIT:'primary',
@@ -77,6 +96,11 @@ let BatchesPage = Vue.extend ( {
 			working:false,
 			interval:'',
 			update_interval_ms:5000,
+			batches_position: 0,
+			batches_display_count: 20,
+			batches_size: 0,
+			view_batches:{},
+			wanted_page:1,
 			wikiUrl: ''
 		}
 	},
@@ -86,13 +110,13 @@ let BatchesPage = Vue.extend ( {
     	me.interval = setInterval ( me.loadBatches , me.update_interval_ms ) ;
     } ,
     updated : function () { tt.updateInterface(this.$el) ; } ,
-    mounted : function () { 
+    mounted : function () {
 		fetch('config.json')
 		.then(res => res.json())
 		.then(data => {
 			this._data.wikiUrl = data.sites.wikidata.pageBase
 		});
-		
+
 		tt.updateInterface(this.$el);
 	} ,
     beforeDestroy : function () { clearInterval ( this.interval ) } ,
@@ -106,12 +130,12 @@ let BatchesPage = Vue.extend ( {
 			var hours = d.split(' ')[1].split(':')[0];
 			var minutes = d.split(' ')[1].split(':')[1];
 			var seconds = d.split(' ')[1].split(':')[2];
-			
+
 			if (hours >= 12) {
 				meridium = 'pm';
 				hours -= 12;
 			}
-			
+
 			return `${month}-${date}-${year} ${hours}:${minutes}:${seconds} ${meridium}`
     	} ,
     	stopBatch : function ( b ) {
@@ -149,11 +173,26 @@ let BatchesPage = Vue.extend ( {
             	data.sort ( function ( a , b ) {
             		return b.batch.ts_last_change*1 - a.batch.ts_last_change*1 ;
             	} ) ;
-            	//console.log(JSON.parse(JSON.stringify(data)));
+							data.reverse();
+							me.batches_size = Math.round(data.length/me.batches_display_count)-1;
             	me.batches = data ;
+
+							me.view_batches = me.batches.slice((me.batches_position*me.batches_display_count), ((me.batches_position+1)*me.batches_display_count) );
             } , 'json' ) ;
-        }
+        },
+				setBatchesPosition : function ( new_position ) {
+					var me = this;
+					if ( new_position < 0 ) new_position = 0 ;
+					me.batches_position = new_position;
+					me.view_batches = me.batches.slice((me.batches_position*me.batches_display_count), ((me.batches_position+1)*me.batches_display_count) );
+				},
+				onChangeWantedPage : function () {
+					let new_position =((1*this.wanted_page)-1);
+					if ( new_position == this.batches_position ) return ;
+					this.setBatchesPosition ( new_position ) ;
+				}
     },
+
     template:'#batches-template'
 } ) ;
 </script>
