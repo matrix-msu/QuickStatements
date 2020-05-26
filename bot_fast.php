@@ -11,26 +11,6 @@ if( isset($argv[1]) ){
 	$_GET['bypass'] = $argv[2];
 }
 
-function messageDb($msg){
-	$servername = "localhost";
-	$username = "josh";
-	$password = "joshPassw0rd!";
-	$dbname = "quickstatement_josh";
-	$conn = new mysqli($servername, $username, $password, $dbname);
-	if ($conn->connect_error) {
-		die("Connection failed: " . $conn->connect_error);
-	}
-	$sql = "INSERT INTO test (msg)
-		 VALUES ('$msg')";
-
-	if ($conn->query($sql) === TRUE) {
-		echo "New record created successfully";
-	} else {
-		echo "Error: " . $sql . "<br>" . $conn->error;
-	}
-	$conn->close();
-}
-
 function checkAndRunSingleBatch(){
 	if ( isset($_GET['single_batch']) && isset($_GET['id']) ) {
 		$qs = new QuickStatements ;

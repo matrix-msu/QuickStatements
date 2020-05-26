@@ -11,7 +11,7 @@
 
     while ( true ) {
 		$qs2 = new QuickStatements ;
-		if ( !$qs2->runNextCommandInBatchFast ( $batch_id, $starting_row ) ){
+		if ( !$qs2->runNextCommandInBatchRemove ( $batch_id, $starting_row ) ){
             $starting_row = $starting_row + $max_num_bots;
             if($starting_row > $total_rows){
                 return 0;

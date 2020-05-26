@@ -582,7 +582,126 @@ class QuickStatements {
 
 	}
 
+	public function runNextCommandInBatchRemove( $batch_id, $row_num=-1 ) {
 
+			// echo 'in run func';
+			$db = $this->getDB();
+			// var_dump($db);
+			// echo $batch_id;
+
+			$sql = "SELECT batch.last_item,batch.status,user.id AS user_id,user.name AS user_name FROM batch,user WHERE batch.id=$batch_id AND user.id=batch.user" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+	// die;
+
+			// echo 'after ';
+			$o = $result->fetch_object() ;
+			// echo 'this is o:';
+			// var_dump($o);
+			if($o->status == 'STOP'){
+				die;
+			}
+			$this->last_item = $o->last_item ;
+			$this->user_id = $o->user_id ;
+			$this->user_name = $o->user_name ;
+			$ts = $this->getCurrentTimestamp() ;
+
+			$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$row_num ORDER BY num LIMIT 1" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+			$o = $result->fetch_object() ;
+			if ( $o == NULL ) { // Nothing more to do
+				return false ;
+				$sql = "UPDATE batch SET status='DONE',last_item='',message='',ts_last_change='$ts' WHERE id=$batch_id" ;
+				if(!$result = $db->query($sql)){
+					echo $db->error;
+					return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+				}
+			}
+
+			// load OAuth, if available
+			if ( $this->use_user_oauth_for_batch_edits ) {
+				$sql = "SELECT serialized FROM batch_oauth WHERE batch_id=$batch_id" ;
+				if($result = $db->query($sql)) {
+					$oauth = $result->fetch_object() ;
+					if ( $oauth !== NULL ) {
+						$oa = unserialize($oauth->serialized) ;
+						if ( $oa === false ) {
+							$this->log( "Could not unserialize OAuth information for batch $batch_id:\n".$oauth->serialized );
+							$this->use_oauth = false ;
+						} else {
+							$this->setOA( $oa ) ;
+						}
+					} else {
+						// no OAuth information for this batch – perfectly normal for older batches, don’t log
+						$this->use_oauth = false ;
+					}
+				} else {
+					$this->log( "Could not load OAuth information for batch $batch_id [" . $db->error . ']' );
+					$this->use_oauth = false ;
+				}
+			}
+
+			// Update status
+			$sql = "UPDATE command_{$batch_id} SET status='RUN',ts_change='$ts',message='' WHERE batch_id=$batch_id AND num={$o->num}" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+
+			// Run command
+			$summary = "[[:toollabs:quickstatements/#/batch/{$batch_id}|batch #{$batch_id}]] by [[User:{$this->user_name}|]]" ;
+			$cmd = json_decode ( $o->json ) ;
+			if ( !isset($cmd->summary) ) $cmd->summary = $summary ;
+			else $cmd->summary .= '; ' . $summary ;
+			// $this->use_oauth = false ;
+			$this->runSingleCommandRemove ( $cmd ) ;
+
+			// Update batch status
+			$db = $this->getDB() ;
+			$ts = $this->getCurrentTimestamp() ;
+			$sql = "UPDATE batch SET status='RUN',ts_last_change='$ts',last_item='{$this->last_item}' WHERE id=$batch_id AND status IN ('INIT','RUN')" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+
+			// Update command status
+			$status = strtoupper ( $cmd->status ) ;
+			$msg = isset($cmd->message) ? $cmd->message : '' ;
+			$message = '';
+			if( $msg != '' ){
+				$message = ",message='".$msg."'";
+			}
+			// echo "command message:";
+			// var_dump($msg);
+			$sql = "UPDATE command_{$batch_id} SET status='$status',ts_change='$ts',message='".$db->real_escape_string($msg)."' WHERE batch_id=$batch_id AND num={$o->num}" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+			// Batch done?
+			$sql = "SELECT count(*) AS cnt FROM command_{$batch_id} WHERE batch_id=$batch_id AND status NOT IN ('ERROR','DONE')" ;
+			if(!$result = $db->query($sql)){
+				echo $db->error;
+				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+			}
+			$o = $result->fetch_object() ;
+			if ( $o->cnt == 0 ) {
+				$sql = "UPDATE batch SET status='DONE',last_item=''".$message." WHERE id=$batch_id" ;
+				if(!$result = $db->query($sql)){
+					echo $db->error;
+					return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+				}
+				return false;
+			}
+
+			return true ;
+		}
 
 
 	public function runNextCommandInBatchSequentialBucket ( $batch_id, $inputRowNum ) {
@@ -1504,7 +1623,57 @@ class QuickStatements {
 		}
 		return $this->commandError( $command, "Incomplete or unknown command" );
 	}
+	public function runSingleCommandRemove ( $command ) {
+		$data = $command->data->labels->en->value;
+		$data = explode('-', $data);
 
+		$q = $data[2] ;
+		$this->wd->loadItem ( $q ) ;
+		if ( !$this->wd->hasItem($q) ) return ;
+		$i = $this->wd->getItem ( $q ) ;
+		$claims = $i->getClaims ( $data[3] ) ;
+		$claims = json_decode(json_encode($claims),true);
+		$guid = $claims[0]['id'];
+		if($data[1] == 'References'){
+			$references = "";
+			foreach( $claims[0]['references'] as $reference ){
+				if($references == ""){
+					$references = $reference['hash'];
+				}else{
+					$references = $references."|".$reference['hash'];
+				}
+			}
+			$this->runAction ( array(
+				'action' => 'wbremovereferences',
+				'statement' => $guid,
+				'references' => $references,
+				'summary' => ''
+			) , $command ) ;
+		}elseif($data[1] == 'Qualifiers'){
+			$qualifiers = "";
+			foreach( $claims[0]['qualifiers'] as $qualifier ){
+				//echo json_encode($qualifier);die;
+				if($qualifiers == ""){
+					$qualifiers = $qualifier[0]['hash'];
+				}else{
+					$qualifiers = $qualifiers."|".$qualifier[0]['hash'];
+				}
+			}
+			$this->runAction ( array(
+				'action' => 'wbremovequalifiers',
+				'claim' => $guid,
+				'qualifiers' => $qualifiers,
+				'summary' => ''
+			) , $command ) ;
+		}
+		if ( $command->status != 'done' ) {
+			$this->last_item = '' ; // Ensure subsequent commands will fail
+			return $command ;
+		}
+		$this->last_item = $command->item ;
+		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
+		return $command ;
+	}
 
 	public function runBucketCommand ( $command, $rows ) {
 		if ( $this->sleep != 0 ) sleep ( $this->sleep ) ;
