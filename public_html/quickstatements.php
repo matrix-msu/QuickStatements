@@ -363,7 +363,7 @@ class QuickStatements {
 		$this->user_name = $o->user_name ;
 		$ts = $this->getCurrentTimestamp() ;
 
-		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$row_num ORDER BY num LIMIT 1" ;
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT','RUN') AND row_num=$row_num ORDER BY num LIMIT 1" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -454,7 +454,6 @@ class QuickStatements {
 			}
 			return false;
 		}
-
 		return true ;
 	}
 
@@ -608,7 +607,7 @@ class QuickStatements {
 			$this->user_name = $o->user_name ;
 			$ts = $this->getCurrentTimestamp() ;
 
-			$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$row_num ORDER BY num LIMIT 1" ;
+			$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT', 'RUN') AND row_num=$row_num ORDER BY num LIMIT 1" ;
 			if(!$result = $db->query($sql)){
 				echo $db->error;
 				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -1331,8 +1330,13 @@ class QuickStatements {
 	}
 
 	protected function commandDone ( $command , $message ) {
-		$command->status = 'done' ;
-		if ( isset($message) and $message != '' ) $command->message = $message ;
+		if ($command->status = 'run'){
+			$command->status = 'done' ;
+			if ( isset($message) and $message != '' ) $command->message = $message ;
+		}
+		else{
+			$command = commandError($command, $message);
+		}
 		return $command ;
 	}
 
