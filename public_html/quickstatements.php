@@ -797,12 +797,15 @@ class QuickStatements {
 		//var_dump($isBucket);
 		// Run command
 		if($isBucket == true){
-			//echo 'run bucket';die;
-			$this->runBucketCommand ( $cmd, $rows ) ;
+			//for reportsON editions
+			if($this->isAllBaseStatements($rows)){
+				$this->runBucketCommand ( $cmd, $rows ) ;
+			}
+			//for provideParticipantRole, it needs base statement
+			else{
+				$this->runBucketWithQualifiersRef($cmd, $rows);
+			}
 		}else{
-			// echo 'before run single command';
-			// var_dump($o);
-			// die;
 			$this->runSingleCommand ( $cmd ) ;
 		}
 
@@ -1677,6 +1680,118 @@ class QuickStatements {
 		$this->last_item = $command->item ;
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
+	}
+
+	public function runBucketWithQualifiersRef($command, $rows){
+
+	//combine sql return into one object that wbedit likes
+	// is array with 2 objects as values
+
+	$claims= $this->preparingClaim($rows);
+	//array divided by item Q
+	foreach($claims as $claim){
+		$claimsArray = array();
+		$descriptionsArray = array();
+		$aliasArray = array();
+		$labelsArray = array();
+		$claimsArrayQ= array();
+		$claimsArrayR= array();
+		//run for every claim
+		foreach($claim as $line){
+
+			$data = json_decode($line->json,true);
+
+			if(isset($data['automaticallyAddedBaseStatement'])	&& $data['what'] == 'statement' ){
+				continue;
+			}
+
+			$what = $data['what'];
+			$item = $data['item'];
+
+			if( $what == 'statement' ){
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$claimsArray[][] = array('mainsnak'=>array('snaktype'=>"value",'property'=>$property,'datavalue'=>$datavalue),'type'=>'statement','rank'=>'normal');
+			}else if( $what == 'qualifier' ){
+
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$qualifier = $data['qualifier'];
+				$objectData = json_decode($line->json);
+				$statement_id = $this->getStatementID ( $objectData ) ;
+
+				$claimIndexQ = -1;
+				$claimsArrayQ[] = array('property'=>$qualifier['prop'],'snaktype'=>'value','datavalue'=>$qualifier['value']);
+		}else if( $what == 'sources' ){
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$sources = $data['sources'];
+				$objectData = json_decode($line->json);
+				$statement_id = $this->getStatementID ( $objectData ) ;
+				$snaks = array() ;
+				foreach ( $sources AS $source ) {
+						$s = array(
+						'snaktype' => 'value' ,
+						'property' =>$source['prop'] ,
+						'datavalue' => $source['value']
+					) ;
+					if ( $s['snaktype'] != 'value' ) unset( $s['datavalue'] ) ;
+					$snaks[$source['prop']][] = $s ;
+
+				}
+			}else if( $what == 'description' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$descriptionsArray[$language] = array('language'=>$language,'value'=>$value);
+			}else if( $what == 'alias' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$aliasArray[$language] = array('language'=>$language,'value'=>$value);
+			}else if( $what == 'label' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$labelsArray[$language] = array('language'=>$language,'value'=>$value);
+			}
+			//todo: maybe add sitelink eventually
+			//todo: definitely add references..
+		}
+		$claimsArrayR[]=array('snaks'=>$snaks);
+		$claimsArray[] =
+		 array(
+			'id'=>$statement_id,
+			'mainsnak'=>array('snaktype'=>"value",'property'=>$property,'datavalue'=>$datavalue),
+			'type'=>'statement',
+			'rank'=>'normal',
+			'qualifiers'=>$claimsArrayQ,
+			'references'=>$claimsArrayR
+
+
+		);
+	//		 echo json_encode($claimsArray);die;
+		$bucketCommand = array();
+		if( !empty($claimsArray) ){
+			$bucketCommand['claims'] = $claimsArray;
+		}
+		if( !empty($descriptionsArray) ){
+			$bucketCommand['descriptions'] = $descriptionsArray;
+		}
+		if( !empty($aliasArray) ){
+			$bucketCommand['aliases'] = $aliasArray;
+		}
+		if( !empty($labelsArray) ){
+			$bucketCommand['labels'] = $labelsArray;
+		}
+		$command->data = $bucketCommand;
+
+		$data = '{}' ;
+		if ( isset($command->data) ) $data = json_encode ( $this->array2object ( $command->data ) ) ;
+		$this->runAction ( array (
+			'action' => 'wbeditentity' ,
+			'id' => $command->item ,
+			'data' => $data ,
+			'summary' => ''
+		) , $command ) ;
+
 	}
 
 	public function runBucketCommand ( $command, $rows ) {
