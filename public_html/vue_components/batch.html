@@ -242,7 +242,6 @@ let BatchPage = Vue.extend ( {
 		},
 		isBatchRemovable: function() {
 			var commandPart = $(".command_part")[0];
-			console.log(commandPart == undefined);
 			if (commandPart != undefined){
 				return (commandPart.innerText.indexOf('Remove-References') > -1) || (commandPart.innerText.indexOf('Remove-Qualifiers') > -1);
 			}

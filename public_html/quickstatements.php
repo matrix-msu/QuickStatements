@@ -1767,7 +1767,7 @@ class QuickStatements {
 
 
 		);
-	//		 echo json_encode($claimsArray);die;
+		// 	 echo json_encode($claimsArray);die;
 		$bucketCommand = array();
 		if( !empty($claimsArray) ){
 			$bucketCommand['claims'] = $claimsArray;
@@ -1802,6 +1802,34 @@ class QuickStatements {
 	$this->last_item = $command->item ;
 	if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 	return $command ;
+
+	}
+
+	protected function preparingClaim($rows){
+	 $claims=array();
+	 foreach($rows as $line){
+
+			$data = json_decode($line->json,true);
+			$id = $data['datavalue']['value']['id'];
+			$claims[$id][]=$line;
+
+	 }
+	 return $claims;
+	}
+
+	protected function isAllBaseStatements ($rows){
+		$claims=array();
+		$flag=true;
+		foreach($rows as $line){
+
+			 $data = json_decode($line->json,true);
+			 $isStatement = $data['what'];
+			 if ($isStatement!='statement'){
+			 	$flag=false;
+				break;}
+
+		}
+		return $flag;
 
 	}
 
