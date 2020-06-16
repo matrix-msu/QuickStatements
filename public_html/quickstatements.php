@@ -1794,6 +1794,17 @@ class QuickStatements {
 
 	}
 
+	//done when all item editions are done
+	if ( $command->status != 'done' ) {
+	$this->last_item = '' ; // Ensure subsequent commands will fail
+	return $command ;
+	}
+	$this->last_item = $command->item ;
+	if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
+	return $command ;
+
+	}
+
 	public function runBucketCommand ( $command, $rows ) {
 		if ( $this->sleep != 0 ) sleep ( $this->sleep ) ;
 		if ( !isset($command) ) return $this->commandError ( $command , "Empty command" ) ;
