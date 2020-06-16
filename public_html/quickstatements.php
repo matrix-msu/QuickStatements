@@ -480,7 +480,7 @@ class QuickStatements {
 		$this->user_name = $o->user_name ;
 		$ts = $this->getCurrentTimestamp() ;
 
-		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') ORDER BY num LIMIT 1" ;
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT', 'RUN') ORDER BY num LIMIT 1" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -726,7 +726,7 @@ class QuickStatements {
 		$ts = $this->getCurrentTimestamp() ;
 
 		//$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') ORDER BY num LIMIT 1" ;
-		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$inputRowNum ORDER BY num";
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT', 'RUN') AND row_num=$inputRowNum ORDER BY num";
 		//todo:
 		//bucket edit isn't working when you have two different buckets
 		//make this select only grab commands from the current row/bucket
