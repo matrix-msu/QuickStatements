@@ -363,7 +363,7 @@ class QuickStatements {
 		$this->user_name = $o->user_name ;
 		$ts = $this->getCurrentTimestamp() ;
 
-		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$row_num ORDER BY num LIMIT 1" ;
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT','RUN') AND row_num=$row_num ORDER BY num LIMIT 1" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -454,7 +454,6 @@ class QuickStatements {
 			}
 			return false;
 		}
-
 		return true ;
 	}
 
@@ -481,7 +480,7 @@ class QuickStatements {
 		$this->user_name = $o->user_name ;
 		$ts = $this->getCurrentTimestamp() ;
 
-		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') ORDER BY num LIMIT 1" ;
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT', 'RUN') ORDER BY num LIMIT 1" ;
 		if(!$result = $db->query($sql)){
 			echo $db->error;
 			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -608,7 +607,7 @@ class QuickStatements {
 			$this->user_name = $o->user_name ;
 			$ts = $this->getCurrentTimestamp() ;
 
-			$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$row_num ORDER BY num LIMIT 1" ;
+			$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT', 'RUN') AND row_num=$row_num ORDER BY num LIMIT 1" ;
 			if(!$result = $db->query($sql)){
 				echo $db->error;
 				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
@@ -727,7 +726,7 @@ class QuickStatements {
 		$ts = $this->getCurrentTimestamp() ;
 
 		//$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') ORDER BY num LIMIT 1" ;
-		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT') AND row_num=$inputRowNum ORDER BY num";
+		$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT', 'RUN') AND row_num=$inputRowNum ORDER BY num";
 		//todo:
 		//bucket edit isn't working when you have two different buckets
 		//make this select only grab commands from the current row/bucket
@@ -798,12 +797,15 @@ class QuickStatements {
 		//var_dump($isBucket);
 		// Run command
 		if($isBucket == true){
-			//echo 'run bucket';die;
-			$this->runBucketCommand ( $cmd, $rows ) ;
+			//for reportsON editions
+			if($this->isAllBaseStatements($rows)){
+				$this->runBucketCommand ( $cmd, $rows ) ;
+			}
+			//for provideParticipantRole, it needs base statement
+			else{
+				$this->runBucketWithQualifiersRef($cmd, $rows);
+			}
 		}else{
-			// echo 'before run single command';
-			// var_dump($o);
-			// die;
 			$this->runSingleCommand ( $cmd ) ;
 		}
 
@@ -1331,8 +1333,13 @@ class QuickStatements {
 	}
 
 	protected function commandDone ( $command , $message ) {
-		$command->status = 'done' ;
-		if ( isset($message) and $message != '' ) $command->message = $message ;
+		if ($command->status = 'run'){
+			$command->status = 'done' ;
+			if ( isset($message) and $message != '' ) $command->message = $message ;
+		}
+		else{
+			$command = commandError($command, $message);
+		}
 		return $command ;
 	}
 
@@ -1673,6 +1680,129 @@ class QuickStatements {
 		$this->last_item = $command->item ;
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
+	}
+
+	public function runBucketWithQualifiersRef($command, $rows){
+
+	//combine sql return into one object that wbedit likes
+	// is array with 2 objects as values
+
+	$claims= $this->preparingClaim($rows);
+	//array divided by item Q
+	foreach($claims as $claim){
+		$claimsArray = array();
+		$descriptionsArray = array();
+		$aliasArray = array();
+		$labelsArray = array();
+		$claimsArrayQ= array();
+		$claimsArrayR= array();
+		//run for every claim
+		foreach($claim as $line){
+
+			$data = json_decode($line->json,true);
+
+			if(isset($data['automaticallyAddedBaseStatement'])	&& $data['what'] == 'statement' ){
+				continue;
+			}
+
+			$what = $data['what'];
+			$item = $data['item'];
+
+			if( $what == 'statement' ){
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$claimsArray[][] = array('mainsnak'=>array('snaktype'=>"value",'property'=>$property,'datavalue'=>$datavalue),'type'=>'statement','rank'=>'normal');
+			}else if( $what == 'qualifier' ){
+
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$qualifier = $data['qualifier'];
+				$objectData = json_decode($line->json);
+				$statement_id = $this->getStatementID ( $objectData ) ;
+
+				$claimIndexQ = -1;
+				$claimsArrayQ[] = array('property'=>$qualifier['prop'],'snaktype'=>'value','datavalue'=>$qualifier['value']);
+		}else if( $what == 'sources' ){
+				$property = $data['property'];
+				$datavalue = $data['datavalue'];
+				$sources = $data['sources'];
+				$objectData = json_decode($line->json);
+				$statement_id = $this->getStatementID ( $objectData ) ;
+				$snaks = array() ;
+				foreach ( $sources AS $source ) {
+						$s = array(
+						'snaktype' => 'value' ,
+						'property' =>$source['prop'] ,
+						'datavalue' => $source['value']
+					) ;
+					if ( $s['snaktype'] != 'value' ) unset( $s['datavalue'] ) ;
+					$snaks[$source['prop']][] = $s ;
+
+				}
+			}else if( $what == 'description' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$descriptionsArray[$language] = array('language'=>$language,'value'=>$value);
+			}else if( $what == 'alias' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$aliasArray[$language] = array('language'=>$language,'value'=>$value);
+			}else if( $what == 'label' ){
+				$value = $data['value'];
+				$language = $data['language'];
+				$labelsArray[$language] = array('language'=>$language,'value'=>$value);
+			}
+			//todo: maybe add sitelink eventually
+			//todo: definitely add references..
+		}
+		$claimsArrayR[]=array('snaks'=>$snaks);
+		$claimsArray[] =
+		 array(
+			'id'=>$statement_id,
+			'mainsnak'=>array('snaktype'=>"value",'property'=>$property,'datavalue'=>$datavalue),
+			'type'=>'statement',
+			'rank'=>'normal',
+			'qualifiers'=>$claimsArrayQ,
+			'references'=>$claimsArrayR
+
+
+		);
+	//		 echo json_encode($claimsArray);die;
+		$bucketCommand = array();
+		if( !empty($claimsArray) ){
+			$bucketCommand['claims'] = $claimsArray;
+		}
+		if( !empty($descriptionsArray) ){
+			$bucketCommand['descriptions'] = $descriptionsArray;
+		}
+		if( !empty($aliasArray) ){
+			$bucketCommand['aliases'] = $aliasArray;
+		}
+		if( !empty($labelsArray) ){
+			$bucketCommand['labels'] = $labelsArray;
+		}
+		$command->data = $bucketCommand;
+
+		$data = '{}' ;
+		if ( isset($command->data) ) $data = json_encode ( $this->array2object ( $command->data ) ) ;
+		$this->runAction ( array (
+			'action' => 'wbeditentity' ,
+			'id' => $command->item ,
+			'data' => $data ,
+			'summary' => ''
+		) , $command ) ;
+
+	}
+
+	//done when all item editions are done
+	if ( $command->status != 'done' ) {
+	$this->last_item = '' ; // Ensure subsequent commands will fail
+	return $command ;
+	}
+	$this->last_item = $command->item ;
+	if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
+	return $command ;
+
 	}
 
 	public function runBucketCommand ( $command, $rows ) {
