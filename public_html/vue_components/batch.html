@@ -72,10 +72,10 @@ div.create_batch_box > div {
 
 				<div style='display:flex;flex-direction:row;margin-bottom:0.5rem;'>
 					<div v-if='meta.batch.status=="STOP" || meta.batch.status=="INIT" || meta.batch.status=="RUN" || meta.batch.status == "RUN_FAST"  || meta.batch.status == "RUN_SEQUENTIAL" || meta.batch.status == "RUN_SEQUENTIAL_BUCKET" || meta.batch.status == "QUEUED" '>
-						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Start Sequential Bot</button>
-						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotBucketSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Start Edit Only Bot</button>
-						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Add to Fast Batch Queue</button>
-						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotRemove' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable()">Start Remove Batch</button>
+						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Start Sequential Bot</button>
+						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotBucketSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Start Edit Only Bot</button>
+						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Add to Fast Batch Queue</button>
+						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotRemove' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || !isBatchRemovable() ">Start Remove Batch</button>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-danger'  @click='stopBatch' v-bind:disabled="batchCommandsDisabled || !isBatchStoppable()">STOP</button>
 						<span v-else>
 							<span tt='original_submitter_hint'></span>
@@ -239,6 +239,16 @@ let BatchPage = Vue.extend ( {
 			// console.log('is stop', stat)
 
 			return (stat === 'RUN') || (stat === 'RUN_SEQUENTIAL') || (stat === 'RUN_FAST') || (stat === 'QUEUED');
+		},
+		isBatchRemovable: function() {
+			var commandPart = $(".command_part")[0];
+			console.log(commandPart == undefined);
+			if (commandPart != undefined){
+				return (commandPart.innerText.indexOf('Remove-References') > -1) || (commandPart.innerText.indexOf('Remove-Qualifiers') > -1);
+			}
+			else{
+				return false;
+			}
 		},
 		updateWDforSite : function () {
     		var me = this ;
