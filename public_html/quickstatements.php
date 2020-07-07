@@ -798,6 +798,8 @@ class QuickStatements {
 		// Run command
 		if($isBucket == true){
 			//for reportsON editions
+			var_dump($rows);
+			die;
 			if($this->isAllBaseStatements($rows)){
 				$this->runBucketCommand ( $cmd, $rows ) ;
 			}
@@ -1431,18 +1433,36 @@ class QuickStatements {
 	}
 
 	protected function commandSetLabel ( $command , $i ) {
-		// Paranoia
-		if ( $i->getLabel ( $command->language , true ) == $command->value ) return $this->commandDone ( $command , 'Already has that label for {$command->language}' ) ;
 
-		// Execute!
-		$this->runAction ( array (
-			'action' => 'wbsetlabel' ,
-			'id' => $this->getPrefixedID ( $command->item ) ,
-			'language' => $command->language ,
-			'value' => $command->value ,
-			'summary' => '' ,
-			'baserevid' => $i->j->lastrevid
-		) , $command ) ;
+		// Paranoia
+	//	if ( $i->getLabel ( $command->language , true ) == $command->value ) return $this->commandDone ( $command , 'Already has that label for {$command->language}' ) ;
+
+		//to clear an item
+		if($command->value=="reuse item"){
+			$data = '{"labels":{"en":{"language":"en","value":"reuse item"}}}' ;
+
+			$this->runAction ( array (
+				'action' => 'wbeditentity' ,
+				'id' => $command->item,
+				'data' => $data ,
+				'clear' => true,
+				'summary' => ''
+			) , $command ) ;
+
+		}else{
+			// Execute!
+			$this->runAction ( array (
+				'action' => 'wbsetlabel' ,
+				'id' => $this->getPrefixedID ( $command->item ) ,
+				'language' => $command->language ,
+				'value' => $command->value ,
+				'summary' => '' ,
+				'baserevid' => $i->j->lastrevid
+			) , $command ) ;
+		}
+
+
+
 		if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
 		return $command ;
 	}
@@ -1616,7 +1636,7 @@ class QuickStatements {
 				if ( $command->what == 'sources' ) return $this->commandAddSources ( $command , $i , $statement_id ) ;
 
 			} else if ( $command->action == 'remove' ) {
-
+					var_dump($command);
 				if ( $command->what == 'statement' ) {
 					if ( !isset($command->id) ) $command->id = $this->getStatementID ( $command ) ;
 					if ( !isset($command->id) or $command->id == '' ) return $this->commandError ( $command , "Base statement not found" ) ;
@@ -1833,6 +1853,10 @@ class QuickStatements {
 
 	}
 
+	protected function isClearStatementsAndEditLabel($rows){
+		var_dump($rows);
+	}
+
 	public function runBucketCommand ( $command, $rows ) {
 		if ( $this->sleep != 0 ) sleep ( $this->sleep ) ;
 		if ( !isset($command) ) return $this->commandError ( $command , "Empty command" ) ;
@@ -2046,8 +2070,10 @@ class QuickStatements {
 					$tmpRowNum = $editedQids[$first];
 				}
 				$prop = strtoupper(trim($cols[1])) ;
+
 				//just check if label or description and add to the most recent array
 				if( $prop == 'LEN' ){
+
 					$labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1]['len'] = $cols[2];
 				}
 				if( $prop == 'DEN' ){
@@ -2152,6 +2178,7 @@ class QuickStatements {
 				//check if the last finished array matches any other array in the array
 				//error if it does
 				//if not, start a new arrary (below)
+
 				if( !empty($labelDescriptionValidationArray) ){
 					$temp = $labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1];
 					$temp = json_encode($temp);
@@ -2176,6 +2203,9 @@ class QuickStatements {
 			// var_dump($ret['data']['commands']);
 			// die;
 		}
+/*I commented out this until we know which if statements to put here to not interfer with add statements
+
+
 		if( !empty($labelDescriptionValidationArray) ){
 			$temp = $labelDescriptionValidationArray[count($labelDescriptionValidationArray) - 1];
 			$temp = json_encode($temp);
@@ -2184,7 +2214,7 @@ class QuickStatements {
 				echo "Error! Your batch has at least one duplicate label/description combination.";
 				die;
 			}
-		}
+		}*/
 		// echo 'after import';
 		// var_dump($labelDescriptionValidationArray);
 		// array_unique($labelDescriptionValidationArray);
