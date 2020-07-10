@@ -41,7 +41,7 @@ $(document).ready ( function () {
         wd_ns_prefixes = {} ;
         for ( var letter in config.sites[config.site].types )
             wd_ns_prefixes[letter] = config.sites[config.site].types[letter].ns_prefix ;
-        
+
         const routes = [
           { path: '/', component: MainPage , props:true },
           { path: '/batches', component: BatchesPage , props:true },

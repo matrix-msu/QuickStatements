@@ -71,7 +71,7 @@ div.create_batch_box > div {
 
 
 				<div style='display:flex;flex-direction:row;margin-bottom:0.5rem;'>
-					<div v-if='meta.batch.status=="STOP" || meta.batch.status=="INIT" || meta.batch.status=="RUN" || meta.batch.status == "RUN_FAST"  || meta.batch.status == "RUN_SEQUENTIAL" || meta.batch.status == "RUN_SEQUENTIAL_BUCKET" || meta.batch.status == "QUEUED" '>
+					<div v-if='hideControls() '>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Start Sequential Bot</button>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotBucketSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Start Edit Only Bot</button>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Add to Fast Batch Queue</button>
@@ -227,6 +227,20 @@ let BatchPage = Vue.extend ( {
 				return false;
 			}
 
+		},
+		hideControls: function() {
+			console.log('in hide controls')
+			var stat = this.meta.batch.status;
+			if(this.meta.commands.ERROR||0>0){
+				$("#export_errors").css('display','')
+				$("#export_errors").attr('data-id', this.meta.batch.id)
+			}else{
+				$("#export_errors").css('display','none')
+			}
+			if( stat=="STOP" || stat=="INIT" || stat=="RUN" || stat == "RUN_FAST"  || stat== "RUN_SEQUENTIAL" || stat== "RUN_SEQUENTIAL_BUCKET" || stat== "QUEUED"){
+				return true;
+			}
+			return false;
 		},
 		isBatchRunnable: function() {
 			var stat = this.meta.batch.status;
@@ -702,4 +716,12 @@ let BatchPage = Vue.extend ( {
     },
 	template : '#batch-template'
 } ) ;
+setTimeout(function(){
+	$("#export_errors").click(function(){
+		$('#working').show() ;
+		var batch_id = $(this).attr('data-id');
+		window.location = "./api.php?action=download_errors&batch_id="+batch_id;
+		$('#working').hide() ;
+	});
+},500)
 </script>

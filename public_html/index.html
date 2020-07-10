@@ -44,6 +44,9 @@
 				<li class="nav-item navthing">
 					<router-link class='btn btn-outline-info' to='/help' tt="help"></router-link>
 				</li>
+				<li class="nav-item navthing">
+					<div class='btn btn-outline-info' style="display:none" id="export_errors">Export Errors</div>
+				</li>
 				<li class="nav-item navthing" id='working'>
 					<img src='images/Vector_Loading_fallback.gif' />
 				</li>
@@ -55,5 +58,12 @@
 </body>
 
 <script src="vue.js"></script>
+<script>
+setTimeout(function(){
+	$('#navbarSupportedContent').on('click','.nav-item',function(){
+		console.log('nav item click')
+	})
+},500);
+</script>
 
 </html>

@@ -288,6 +288,30 @@ if ( $action == 'import' ) {
 		}
 	}
 
+} else if ( $action == 'download_errors' ) {
+
+	$batch_id = get_request ( 'batch_id' , '' ) ;
+
+	$db = $qs->getDB() ;
+	$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id={$batch_id} AND `status`='ERROR'" ;
+	if(!$result = $db->query($sql)) fin($db->error) ;
+
+	$str = "row_num,message\n";
+	while ( $o = $result->fetch_object() ) {
+		$str .= $o->id.",".$o->message."\n";
+	}
+	// $str = "Some pseudo-random
+	// text spanning
+	// multiple lines".$batch_id;
+	// $str = implode($ids, ' ');
+
+	header('Content-Disposition: attachment; filename="error_report.csv"');
+	header('Content-Type: text/plain'); # Don't use application/force-download - it's not a real MIME type, and the Content-Disposition header is sufficient
+	header('Content-Length: ' . strlen($str));
+	header('Connection: close');
+
+	echo $str;
+	exit;
 }
 
 fin();

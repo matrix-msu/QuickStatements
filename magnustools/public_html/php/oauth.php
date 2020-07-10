@@ -498,6 +498,12 @@ class MW_OAuth {
 		// 	die;
 		// }
 
+		$fp = fopen('/home/christj2/website/enslaved-quickstatements/log.txt', 'a');
+		date_default_timezone_set('America/Detroit');
+	    $log = date('m/d/Y h:i:s a', time())." ".$post_fields."\n";
+	    fwrite($fp,$log);
+		fclose($fp);
+
 		if ( $hardTest ) {
 			print "<hr/><h3>API query</h3>" ;
 //			print "URL:<pre>$url</pre>" ;
