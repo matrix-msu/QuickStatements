@@ -296,9 +296,9 @@ if ( $action == 'import' ) {
 	$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id={$batch_id} AND `status`='ERROR'" ;
 	if(!$result = $db->query($sql)) fin($db->error) ;
 
-	$str = "row_num,message\n";
+	$str = "row_num,statement_json,message\n";
 	while ( $o = $result->fetch_object() ) {
-		$str .= $o->id.",".$o->message."\n";
+		$str .= $o->id.",".$o->json.",".$o->message."\n";
 	}
 	// $str = "Some pseudo-random
 	// text spanning

@@ -560,6 +560,7 @@ class MW_OAuth {
 			isset($ret->error->info) &&
 			(
 				strpos($ret->error->info,'Caught exception of type Wikimedia\Rdbms\DBQueryError') !== false ||
+				strpos($ret->error->info,'The save has failed.') !== false ||
 				strpos($ret->error->info,'The authorization headers in your request are not valid') !== false
 			)
 		){
