@@ -296,14 +296,20 @@ if ( $action == 'import' ) {
 	$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id={$batch_id} AND `status`='ERROR'" ;
 	if(!$result = $db->query($sql)) fin($db->error) ;
 
-	$str = "row_num,statement_json,message\n";
+	$buffer = fopen('php://temp', 'r+');
+	$str = array("row_num","statement_json","message");
+	fputcsv($buffer, $str);
 	while ( $o = $result->fetch_object() ) {
-		$str .= $o->id.",".$o->json.",".$o->message."\n";
+		$str = array($o->id,$o->json,$o->message);
+		fputcsv($buffer, $str);
 	}
-	// $str = "Some pseudo-random
-	// text spanning
-	// multiple lines".$batch_id;
-	// $str = implode($ids, ' ');
+	// $str = "row_num,statement_json,message\n";
+	// while ( $o = $result->fetch_object() ) {
+	// 	$str .= $o->id.",".$o->json.",".$o->message."\n";
+	// }
+    rewind($buffer);
+    $str = stream_get_contents($buffer);
+    fclose($buffer);
 
 	header('Content-Disposition: attachment; filename="error_report.csv"');
 	header('Content-Type: text/plain'); # Don't use application/force-download - it's not a real MIME type, and the Content-Disposition header is sufficient
