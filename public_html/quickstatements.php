@@ -798,8 +798,8 @@ class QuickStatements {
 		// Run command
 		if($isBucket == true){
 			//for reportsON editions
-			var_dump($rows);
-			die;
+			//var_dump($rows);
+			//die;
 			if($this->isAllBaseStatements($rows)){
 				$this->runBucketCommand ( $cmd, $rows ) ;
 			}
