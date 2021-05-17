@@ -1483,6 +1483,24 @@ class QuickStatements {
 		return $command ;
 	}
 
+	protected function commandRemoveAlias ( $command , $i ) {
+        // Paranoia TODO
+
+        // Execute!
+        $this->runAction ( array (
+            'action' => 'wbsetaliases' ,
+            //replaced with the line below because of https://bitbucket.org/magnusmanske/wikidata-todo/issues/112/quickstatements-changing-or-editing
+            //'id' => $this->getPrefixedID ( $command->item ) ,
+            'id' => $command->item ,
+            'language' => $command->language ,
+            'remove' => $command->value ,
+            'summary' => '' ,
+            'baserevid' => $i->j->lastrevid
+        ) , $command ) ;
+        if ( !$this->isBatchRun() ) $this->wd->updateItem ( $command->item ) ;
+        return $command ;
+    }
+
 	protected function commandSetDescription ( $command , $i ) {
 		// Paranoia
 		if ( $i->getDesc ( $command->language , true ) == $command->value ) return $this->commandDone ( $command , 'Already has that description for {$command->language}' ) ;
@@ -1643,7 +1661,9 @@ class QuickStatements {
 					return $this->commandRemoveStatement ( $command ) ;
 				} else if ( $command->what == 'sitelink' ) {
 					return $this->commandRemoveSitelink ( $command, $i ) ;
-				}
+				} else if ( $command->what == 'alias' ) {
+                    return $this->commandRemoveAlias ( $command, $i ) ;
+                }
 
 			}
 
