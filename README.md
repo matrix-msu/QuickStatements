@@ -34,3 +34,4 @@ This can be seen at /public_html/quickstatements.php line 1880
 * Statement files are now immediately proccessed and put into the database. This used to require a specification to run in background. This cuts file processing time roughly in half and provides a better user experience.
 
 * A copy of magnustools has been included in the repo to simplify install and provide the full product in one repo.
+
