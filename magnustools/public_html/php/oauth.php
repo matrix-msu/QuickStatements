@@ -399,8 +399,6 @@ class MW_OAuth {
 		return $payload ;
 	}
 
-
-
 	/**
 	 * Send an API query with OAuth authorization
 	 *
@@ -475,7 +473,6 @@ class MW_OAuth {
 			$post_fields = http_build_query( $post ) ;
 		}
 
-
 		curl_setopt( $ch, CURLOPT_POST, true );
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post_fields );
@@ -487,22 +484,14 @@ class MW_OAuth {
 
 		$data = curl_exec( $ch );
 
-		// if( $post_fields == "format=json&action=query&meta=tokens&maxlag=5" ){
-		//
-		// }elseif( $post_fields == "format=json&action=query&meta=userinfo&uiprop=blockinfo%7Cgroups%7Crights&maxlag=99999" ){
-		//
-		// }else{
-		// 	echo $post_fields;
-		// 	echo "<br><br>";
-		// 	echo $data;
-		// 	die;
-		// }
-
-		// $fp = fopen('/home/christj2/website/enslaved-quickstatements/log.txt', 'a');
-		// date_default_timezone_set('America/Detroit');
-	    // $log = date('m/d/Y h:i:s a', time())." ".$post_fields."\n";
-	    // fwrite($fp,$log);
-		// fclose($fp);
+		$apiLogging = true;
+		if(
+			$post_fields == "format=json&action=query&meta=tokens&maxlag=5" ||
+			$post_fields == "format=json&action=query&uiprop=groups%7Crights&meta=userinfo&maxlag=99999" ||
+			$post_fields == "format=json&action=query&meta=userinfo&uiprop=blockinfo%7Cgroups%7Crights&maxlag=99999"
+		){
+			$apiLogging = false;
+		}
 
 		if ( $hardTest ) {
 			print "<hr/><h3>API query</h3>" ;
@@ -518,35 +507,22 @@ class MW_OAuth {
 		$ret = json_decode( $data );
 		if ( $ret == null ) return ;
 
-		// if ( isset($ret->error) ){
-		// 	// messageDb('$ret->error');
-		//
-		// 	//$msg = json_encode($ret->error);
-		// 	$msg = 'yay hardcoded oauth.php erorr';
-		// 	if( isset($ret->error->code)){
-		// 		$msg = json_encode($ret->error->code);
-		// 	}
-		// 	if( isset($ret->error->info)){
-		// 		$msg = "oauth.php: ". json_encode($ret->error->info);
-		// 	}
-		// 	$servername = "localhost";
-	    //     $username = "josh";
-	    //     $password = "joshPassw0rd!";
-	    //     $dbname = "quickstatement_josh";
-	    //     $conn = new mysqli($servername, $username, $password, $dbname);
-	    //     if ($conn->connect_error) {
-	    //         die("Connection failed: " . $conn->connect_error);
-	    //     }
-	    //     $sql = "INSERT INTO test (msg)
-	    //          VALUES ('$msg')";
-		//
-	    //     if ($conn->query($sql) === TRUE) {
-	    //         echo "New record created successfully";
-	    //     } else {
-	    //         echo "Error: " . $sql . "<br>" . $conn->error;
-	    //     }
-	    //     $conn->close();
-		// }
+		$msg = '';
+		if ( isset($ret->error) ){
+
+			$msg = json_encode($ret->error);
+			// $msg = 'yay hardcoded oauth.php erorr';
+			if( isset($ret->error->code)){
+				$msg .= " | error_code: " .json_encode($ret->error->code);
+			}
+			if( isset($ret->error->info)){
+				$msg .= " | error_info: ". json_encode($ret->error->info);
+			}
+		}
+		if($apiLogging){
+			$out = date('YmdHis')."\t post:".$post."\t data:".$data."\t error".$error."\n" ;
+			file_put_contents ( getcwd()."/apilog.txt" , $out , FILE_APPEND ) ;
+		}
 
 		# maxlag
 		if ( isset($ret->error) and isset($ret->error->code) and $ret->error->code == 'maxlag' ) {
@@ -572,32 +548,7 @@ class MW_OAuth {
 		return $ret ;
 	}
 
-	// function messageDb($msg){
-    //     $servername = "localhost";
-    //     $username = "josh";
-    //     $password = "joshPassw0rd!";
-    //     $dbname = "quickstatement_josh";
-    //     $conn = new mysqli($servername, $username, $password, $dbname);
-    //     if ($conn->connect_error) {
-    //         die("Connection failed: " . $conn->connect_error);
-    //     }
-    //     $sql = "INSERT INTO test (msg)
-    //          VALUES ('$msg')";
-	//
-    //     if ($conn->query($sql) === TRUE) {
-    //         echo "New record created successfully";
-    //     } else {
-    //         echo "Error: " . $sql . "<br>" . $conn->error;
-    //     }
-    //     $conn->close();
-    // }
-
-
-
-
 	// Wikidata-specific methods
-
-
 	function doesClaimExist ( $claim ) {
 		$q = 'Q' . str_replace('Q','',$claim['q'].'') ;
 		$p = 'P' . str_replace('P','',$claim['prop'].'') ;
