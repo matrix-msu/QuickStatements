@@ -435,12 +435,6 @@ class MW_OAuth {
 		];
 
 		$hardTest = false;
-		if ( $hardTest ) {
-			print "<pre>" ;
-			print "!!\n" ;
-//			print_r ( $headerArr ) ;
-			print "</pre>" ;
-		}
 
 		$to_sign = '' ;
 		if ( $mode == 'upload' ) {
@@ -493,21 +487,7 @@ class MW_OAuth {
 			$apiLogging = false;
 		}
 
-		if ( $hardTest ) {
-			print "<hr/><h3>API query</h3>" ;
-//			print "URL:<pre>$url</pre>" ;
-//			print "Header:<pre>" ; print_r ( $header ) ; print "</pre>" ;
-			print "Payload:<pre>" ; print_r ( $post ) ; print "</pre>" ;
-			print "Result:<pre>" ; print_r ( $data ) ; print "</pre>" ;
-			print "<hr/>" ;
-			die;
-		}
-
-		if ( !$data ) return ;
-		$ret = json_decode( $data );
-		if ( $ret == null ) return ;
-
-		$msg = '';
+		$msg = 'none';
 		if ( isset($ret->error) ){
 
 			$msg = json_encode($ret->error);
@@ -520,9 +500,13 @@ class MW_OAuth {
 			}
 		}
 		if($apiLogging){
-			$out = date('YmdHis')."\t post:".$post."\t data:".$data."\t error".$error."\n" ;
+			$out = date('Y m d : H i s')."\t post:".$post_fields."\t data:".$data."\t error:".$msg."\n" ;
 			file_put_contents ( getcwd()."/apilog.txt" , $out , FILE_APPEND ) ;
 		}
+
+		if ( !$data ) return ;
+		$ret = json_decode( $data );
+		if ( $ret == null ) return ;
 
 		# maxlag
 		if ( isset($ret->error) and isset($ret->error->code) and $ret->error->code == 'maxlag' ) {
