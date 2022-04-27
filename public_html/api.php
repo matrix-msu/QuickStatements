@@ -318,6 +318,10 @@ if ( $action == 'import' ) {
 
 	echo $str;
 	exit;
+}else if ( $action == 'clear_log' ) {
+	file_put_contents('../apilog.txt','');
+	echo json_encode('log file cleared successfully');
+	die;
 }
 
 fin();

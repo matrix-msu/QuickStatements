@@ -42,6 +42,9 @@
 					<router-link class='btn btn-outline-secondary' to='/batches' tt="show_last_batches"></router-link>
 				</li>
 				<li class="nav-item navthing">
+					<div class='btn btn-outline-info' id="clear_log">Clear Log File</div>
+				</li>
+				<li class="nav-item navthing">
 					<router-link class='btn btn-outline-info' to='/help' tt="help"></router-link>
 				</li>
 				<li class="nav-item navthing">
@@ -63,6 +66,17 @@ setTimeout(function(){
 	$('#navbarSupportedContent').on('click','.nav-item',function(){
 		console.log('nav item click')
 	})
+	$("#clear_log").click(function(){
+		$('#working').show();
+		$.ajax({url: "./api.php?action=clear_log", success: function(result){
+			alert(result);
+			$('#working').hide() ;
+		},error: function(error){
+			alert(error);
+			$('#working').hide() ;
+		}});
+	});
+
 },500);
 </script>
 
