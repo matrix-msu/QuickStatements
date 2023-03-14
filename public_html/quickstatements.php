@@ -312,7 +312,6 @@ class QuickStatements {
 			$db->query($sql) ;
 			return $this->setErrorMessage ( "User:$user_name is blocked on Wikidata" ) ;
 		}
-
 		$sql = "UPDATE batch SET status='QUEUED' WHERE id=$batch_id";
 		if(!$result = $db->query($sql)) return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 		return true ;
@@ -607,19 +606,19 @@ class QuickStatements {
 			$this->user_name = $o->user_name ;
 			$ts = $this->getCurrentTimestamp() ;
 
-			$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT', 'RUN') AND row_num=$row_num ORDER BY num LIMIT 1" ;
+			$sql = "SELECT * FROM command_{$batch_id} WHERE batch_id=$batch_id AND status IN ('INIT', 'RUN') ORDER BY num LIMIT 1" ;
 			if(!$result = $db->query($sql)){
 				echo $db->error;
 				return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 			}
 			$o = $result->fetch_object() ;
 			if ( $o == NULL ) { // Nothing more to do
-				return false ;
 				$sql = "UPDATE batch SET status='DONE',last_item='',message='',ts_last_change='$ts' WHERE id=$batch_id" ;
 				if(!$result = $db->query($sql)){
 					echo $db->error;
 					return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
 				}
+				return true;
 			}
 
 			// load OAuth, if available
@@ -1671,32 +1670,53 @@ class QuickStatements {
 		return $this->commandError( $command, "Incomplete or unknown command" );
 	}
 	public function runSingleCommandRemove ( $command ) {
-		$data = $command->data->labels->en->value;
-		$data = explode('-', $data);
+		// echo 'in single remove';
+		$data = $command->datavalue->value;
+		$explode = explode('-', $data);
+		$type = $explode[0];
+		$refProperty = $explode[1];
+		$refValue = ltrim($data,$type.'-'.$refProperty.'-');
 
-		$q = $data[2] ;
+		// echo $type;
+		// echo $refProperty;
+		// echo $refValue;die;
+
+		$q = $command->item;
 		$this->wd->loadItem ( $q ) ;
 		if ( !$this->wd->hasItem($q) ) return ;
 		$i = $this->wd->getItem ( $q ) ;
-		$claims = $i->getClaims ( $data[3] ) ;
+		$claims = $i->getClaims ( $command->property ) ;
 		$claims = json_decode(json_encode($claims),true);
+		// echo json_encode($claims);die;
 		$guid = $claims[0]['id'];
-		if($data[1] == 'References'){
+		$snaks = array();
+		if($type == 'Reference'){
 			$references = "";
-			foreach( $claims[0]['references'] as $reference ){
-				if($references == ""){
-					$references = $reference['hash'];
-				}else{
-					$references = $references."|".$reference['hash'];
+			foreach( $claims[0]['references'] as $refType ){
+				if(isset($refType['snaks'][$refProperty])){
+					foreach( $refType['snaks'][$refProperty] as $index => $reference ){
+						$itemRefValue = $reference['datavalue']['value'];
+						if(is_array($itemRefValue)){
+							$itemRefValue = $itemRefValue['id'];
+						}
+						if($itemRefValue == $refValue){
+							$referenceHash = $refType['hash'];
+							unset($refType['snaks'][$refProperty][$index]);
+							$refType['snaks'][$refProperty] = array_values($refType['snaks'][$refProperty]);
+							$snaks = $refType['snaks'];
+							break 2;
+						}
+					}
 				}
 			}
 			$this->runAction ( array(
-				'action' => 'wbremovereferences',
+				'action' => 'wbsetreference',
 				'statement' => $guid,
-				'references' => $references,
+				'reference' => $referenceHash,
+				'snaks' => json_encode($snaks),
 				'summary' => ''
 			) , $command ) ;
-		}elseif($data[1] == 'Qualifiers'){
+		}elseif($type == 'Qualifiers'){
 			$qualifiers = "";
 			foreach( $claims[0]['qualifiers'] as $qualifier ){
 				//echo json_encode($qualifier);die;

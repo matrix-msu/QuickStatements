@@ -25,9 +25,20 @@ function checkAndRunSingleBatch(){
 			die;
 		}
 
+		$sql = "SELECT count(*) AS cnt from batch WHERE status='RUN_SEQUENTIAL'" ;
+		if(!$result2 = $db->query($sql)){
+			echo $db->error;
+			return $this->setErrorMessage ( 'There was an error running the query [' . $db->error . ']'."\n$sql" ) ;
+		}
+		$o = $result2->fetch_object() ;
+		if ( $o->cnt > 0 ) {
+			echo "There is already a sequential batch running.";
+			die;
+		}
+
 		if ( $result->status == 'INIT' || $result->status == 'STOP') {
 			// queue the batch
-			if ( !$qs->queueBatch($result->id) ) {
+			if ( !$qs->startBatch($result->id) ) {
 				echo 'died';
 				print "{$result->id}: " . $qs->last_error_message."\n" ;
 				return 0;
@@ -37,25 +48,33 @@ function checkAndRunSingleBatch(){
 			die;
 		}
 
-		$isBatchRunning = $qs->checkForRunFastStatus($result->id);
+		// $isBatchRunning = $qs->checkForRunFastStatus($result->id);
+		// if( $isBatchRunning && !isset($_GET['bypass']) ){
+		// 	die; // queue the batch instead of injest
+		// }
+		// $qs->setStatusToRunFast($result->id);
+		//
+		// $max_num_bots = 40;
+		// if( $max_num_bots > $result->total_rows ){
+		// 	$max_num_bots = $result->total_rows;
+		// }
+		//
+		// for($i=1;$i<=$max_num_bots;$i++){
+		// 	echo exec("/opt/local/bin/php botChildRemove.php $i {$result->id} $max_num_bots {$result->total_rows} >/dev/null 2>&1 &", $out, $v);
+		// }
+		// $i = $i -1;
+		// echo "bots spawned: $i<br>";
 
-		if( $isBatchRunning && !isset($_GET['bypass']) ){
-			die; // queue the batch instead of injest
+		while(1) {
+			$qs2 = new QuickStatements;
+
+			if ( !$qs2->runNextCommandInBatchRemove($result->id) )
+				return 0;
+
+			$status = $qs2->getBatchStatus( [$result->id] );
+			if ( $status[$result->id]['batch']->status != 'RUN_SEQUENTIAL' )
+				return 1;
 		}
-
-
-		$qs->setStatusToRunFast($result->id);
-
-		$max_num_bots = 40;
-		if( $max_num_bots > $result->total_rows ){
-			$max_num_bots = $result->total_rows;
-		}
-
-		for($i=1;$i<=$max_num_bots;$i++){
-			echo exec("/opt/local/bin/php botChildRemove.php $i {$result->id} $max_num_bots {$result->total_rows} >/dev/null 2>&1 &", $out, $v);
-		}
-		$i = $i -1;
-		echo "bots spawned: $i<br>";
 
 		return 1;
 	} else {

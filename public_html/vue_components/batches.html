@@ -30,7 +30,7 @@
 	  </div>
 	</div>
 
-	<table v-if='batches_size>0' class='table table-striped'>
+	<table v-if='true' class='table table-striped'>
 		<thead><tr><th>#</th><th tt='user'></th><th tt='name'></th><th tt='status'></th><th tt='last_change'></th><th tt='actions'></th></tr></thead>
 		<tbody>
 			<tr v-for='b in view_batches'>
@@ -176,7 +176,6 @@ let BatchesPage = Vue.extend ( {
 							data.reverse();
 							me.batches_size = Math.round(data.length/me.batches_display_count)-1;
             	me.batches = data ;
-
 							me.view_batches = me.batches.slice((me.batches_position*me.batches_display_count), ((me.batches_position+1)*me.batches_display_count) );
             } , 'json' ) ;
         },

@@ -75,7 +75,7 @@ div.create_batch_box > div {
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Start Sequential Bot</button>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotBucketSequential' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Start Edit Only Bot</button>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotFast' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable()">Add to Fast Batch Queue</button>
-						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotRemove' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || !isBatchRemovable() ">Start Remove Batch</button>
+						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-primary btn-bot-start' @click='startBotRemove' v-bind:disabled="batchCommandsDisabled || !isBatchRunnable() || isBatchRemovable() ">Start Remove Batch</button>
 						<button v-if='userCanStopBatch() && !run.is_running_in_browser' class='btn btn-outline-danger'  @click='stopBatch' v-bind:disabled="batchCommandsDisabled || !isBatchStoppable()">STOP</button>
 						<span v-else>
 							<span tt='original_submitter_hint'></span>
@@ -427,14 +427,14 @@ let BatchPage = Vue.extend ( {
 		startBotRemove : function () {
 			var me = this;
 
-			this.meta.batch.status = 'QUEUED';
+			this.meta.batch.status = 'RUN';
 
 			console.log('start bot remove')
 			$('.btn-bot-start').hide();
 			$.ajax({
 				url: `../bot_remove.php?single_batch=1&id=${me.meta.batch.id}`,
 				success: function(result){
-					console.log('start bot fast suc');
+					console.log('start bot remove suc');
 					console.log(result);
 				}
 			});
