@@ -6,7 +6,7 @@ Clone
 Create database using the new_scheme.sql file
 Create and edit the /public_html/config.json file based off of /public_html/config.json.template
 Propose new consumer in your wikibase install
-Add the token and secret to the /public_html/oauth.ini file based off of /public_html/oauth.ini.template
+Add the token and secret to the /public_html/.oauth.ini file based off of /public_html/.oauth.ini.template
 Accept your new consumer in your wikibase install
 ```
 
